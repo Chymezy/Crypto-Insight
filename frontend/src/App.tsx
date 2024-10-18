@@ -16,6 +16,7 @@ const Portfolio = lazy(() => import('./pages/Portfolio'));
 const AssetDetails = lazy(() => import('./pages/AssetDetails')); // Lazy import for Asset details page
 const Pricing = lazy(() => import('./pages/Pricing')); // Lazy import for Pricing page
 const Dashboard = lazy(() => import('./components/Dashboard')); // Add this line
+const ResetPassword = lazy(() => import('./pages/ResetPassword')); // Lazy import for ResetPassword page
 
 // Main App component
 const App: React.FC = () => {
@@ -34,6 +35,7 @@ const App: React.FC = () => {
                 <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
                 <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Routes>
             </Suspense>
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} /> {/* Toast container for notifications */}

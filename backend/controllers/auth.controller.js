@@ -273,12 +273,11 @@ export const forgotPassword = async (req, res) => {
 
 // @desc    Reset password
 export const resetPassword = async (req, res) => {
-    const { email: rawEmail, token, newPassword } = req.body;
-    const email = rawEmail.trim(); // Trim the email
-
+    const { email, token, newPassword } = req.body;
+    
     try {
         const user = await User.findOne({
-            email: { $regex: new RegExp(`^${email}$`, 'i') },
+            email: email,
             resetPasswordToken: token,
             resetPasswordExpiresAt: { $gt: Date.now() }
         });

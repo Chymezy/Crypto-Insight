@@ -188,3 +188,4 @@ export const fetchOHLCData = async (assetId: string, timeframe: string): Promise
 
 // ... other exports
 
+export const post = api.post.bind(api); // Bind the post method to the api instance

@@ -133,7 +133,7 @@ export const passwordResetRequestTemplate = `
         <h2>Password Reset Request</h2>
         <p>We received a request to reset your password. If you didn't make this request, you can ignore this email.</p>
         <p>To reset your password, click the button below or enter the reset code manually:</p>
-        <a href="{{reset_link}}" class="button">Reset Password</a>
+        <a href="{reset_link}" class="button">Reset Password</a>
         <p>Reset Code:</p>
         <div class="token">{reset_token}</div>
         <p>This code will expire in 1 hour for security reasons.</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Portfolio, PortfolioPerformance, PortfolioAsset } from '../types/portfolio.types';
 import {
   fetchPortfolios,
@@ -30,44 +30,21 @@ const Dashboard: React.FC = () => {
   const [newAssetAmount, setNewAssetAmount] = useState('');
   const [showPortfolioList, setShowPortfolioList] = useState(false);
 
-  useEffect(() => {
-    fetchAllPortfolios();
-  }, []);
-
-  const fetchAllPortfolios = async () => {
+  const fetchAllPortfolios = useCallback(async () => {
     try {
       console.log('Fetching all portfolios...');
       const data = await fetchPortfolios();
       console.log('Fetched portfolios:', data);
       setPortfolios(data);
-      if (data.length > 0 && !selectedPortfolio) {
-        setSelectedPortfolio(data[0]);
-      }
     } catch (error) {
       console.error('Error fetching portfolios:', error);
       setError('Failed to fetch portfolios. Please try again later.');
     }
-  };
+  }, []);
 
-  const handleCreatePortfolio = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const newPortfolio = await createPortfolio(newPortfolioName, newPortfolioDescription);
-      setPortfolios([...portfolios, newPortfolio]);
-      setSelectedPortfolio(newPortfolio);
-      setNewPortfolioName('');
-      setNewPortfolioDescription('');
-      setIsCreatingPortfolio(false);
-    } catch (error) {
-      console.error('Error creating portfolio:', error);
-      setError('Failed to create portfolio. Please try again.');
-    }
-  };
-
-  const handleSelectPortfolio = (portfolio: Portfolio) => {
-    setSelectedPortfolio(portfolio);
-    setShowPortfolioList(false);
-  };
+  useEffect(() => {
+    fetchAllPortfolios();
+  }, [fetchAllPortfolios]);
 
   useEffect(() => {
     const fetchPerformance = async () => {
@@ -84,13 +61,35 @@ const Dashboard: React.FC = () => {
     fetchPerformance();
   }, [selectedPortfolio, timeframe]);
 
+  const handleCreatePortfolio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const newPortfolio = await createPortfolio(newPortfolioName, newPortfolioDescription);
+      setPortfolios(prevPortfolios => [...prevPortfolios, newPortfolio]);
+      setSelectedPortfolio(newPortfolio);
+      setNewPortfolioName('');
+      setNewPortfolioDescription('');
+      setIsCreatingPortfolio(false);
+    } catch (error) {
+      console.error('Error creating portfolio:', error);
+      setError('Failed to create portfolio. Please try again.');
+    }
+  };
+
+  const handleSelectPortfolio = (portfolio: Portfolio) => {
+    setSelectedPortfolio(portfolio);
+    setShowPortfolioList(false);
+  };
+
   const handleUpdatePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPortfolio) return;
     try {
       const updatedPortfolio = await updatePortfolio(selectedPortfolio.id, editedPortfolioName, editedPortfolioDescription);
       setSelectedPortfolio(updatedPortfolio);
-      setPortfolios(portfolios.map(p => p.id === updatedPortfolio.id ? updatedPortfolio : p));
+      setPortfolios(prevPortfolios => 
+        prevPortfolios.map(p => p.id === updatedPortfolio.id ? updatedPortfolio : p)
+      );
       setIsEditingPortfolio(false);
     } catch (error) {
       console.error('Error updating portfolio:', error);
@@ -103,7 +102,7 @@ const Dashboard: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this portfolio?')) {
       try {
         await deletePortfolio(selectedPortfolio.id);
-        setPortfolios(portfolios.filter(p => p.id !== selectedPortfolio.id));
+        setPortfolios(prevPortfolios => prevPortfolios.filter(p => p.id !== selectedPortfolio.id));
         setSelectedPortfolio(null);
       } catch (error) {
         console.error('Error deleting portfolio:', error);
@@ -157,6 +156,13 @@ const Dashboard: React.FC = () => {
     setShowPortfolioList(true);
     console.log('showPortfolioList set to true');
   };
+
+  // New useEffect to set initial selected portfolio
+  useEffect(() => {
+    if (portfolios.length > 0 && !selectedPortfolio) {
+      setSelectedPortfolio(portfolios[0]);
+    }
+  }, [portfolios, selectedPortfolio]);
 
   return (
     <div className="bg-gray-900 min-h-screen p-6 text-white">

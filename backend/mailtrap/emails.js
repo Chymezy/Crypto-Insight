@@ -47,15 +47,18 @@ export const sendWelcomeEmail = async (email, name) => {
 
 export const sendPasswordResetRequestEmail = async (email, resetToken) => {
     const recipient = [{ email }];
+    const resetPasswordLink = `${process.env.FRONTEND_URL}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`;
 
     try {
         const response = await mailtrapClient.send({
             from: sender,
             to: recipient,
             subject: "Password Reset Request - CryptoInsight",
-            html: passwordResetRequestTemplate.replace("{reset_token}", resetToken),
+            html: passwordResetRequestTemplate
+                .replace("{reset_link}", resetPasswordLink)
+                .replace("{reset_token}", resetToken),
             template_variables: {
-                reset_link: `https://your-frontend-url.com/reset-password?token=${resetToken}`,
+                reset_link: resetPasswordLink,
                 reset_token: resetToken,
             },
             category: "Password Reset Request",

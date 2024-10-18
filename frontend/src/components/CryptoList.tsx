@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchTopCryptos } from '../services/api';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { Crypto as ImportedCrypto } from '../types'; // Import the Crypto type from your types file
 
-interface Crypto {
-  id: string;
-  name: string;
-  symbol: string;
-  current_price: number;
-  price_change_percentage_24h: number;
+// Extend the imported Crypto type with the missing property
+interface Crypto extends ImportedCrypto {
   sparkline_in_7d: { price: number[] };
 }
 
@@ -20,7 +17,8 @@ const CryptoList: React.FC = () => {
     const loadCryptos = async () => {
       try {
         const data = await fetchTopCryptos();
-        setCryptos(data.slice(0, 20));
+        // Cast the data to the extended Crypto type
+        setCryptos(data.slice(0, 20) as Crypto[]);
       } catch (error) {
         console.error('Error fetching cryptos:', error);
       }
