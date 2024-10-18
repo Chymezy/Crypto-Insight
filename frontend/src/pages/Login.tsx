@@ -24,7 +24,7 @@ const Login: React.FC = () => { // Login component
     try {
       await login(email, password);
       toast.success('Login successful!');
-      navigate('/dashboard'); // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
       toast.error('Failed to login. Please check your credentials and try again.');
       console.error('Login error:', err);

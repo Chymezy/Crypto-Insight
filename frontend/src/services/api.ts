@@ -11,18 +11,50 @@ const api: AxiosInstance = axios.create({
   withCredentials: true, // This ensures cookies are sent with requests
 });
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 // Interceptor for token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && originalRequest && !originalRequest.headers['X-Retry']) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => {
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      isRefreshing = true;
       originalRequest.headers['X-Retry'] = 'true';
+
       try {
-        await refreshToken();
+        const { data } = await api.post('/auth/refresh-token');
+        isRefreshing = false;
+        processQueue(null, data.accessToken);
         return api(originalRequest);
       } catch (refreshError) {
-        // Handle refresh token failure (e.g., logout user)
+        isRefreshing = false;
+        processQueue(refreshError, null);
+        // Logout user or redirect to login page
+        // For example: window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
@@ -189,3 +221,5 @@ export const fetchOHLCData = async (assetId: string, timeframe: string): Promise
 // ... other exports
 
 export const post = api.post.bind(api); // Bind the post method to the api instance
+
+export default api;

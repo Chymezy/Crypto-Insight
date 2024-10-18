@@ -13,21 +13,23 @@ const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await register(name, email, password);
+      console.log('Attempting to register with:', { name, email, password });
+      const response = await signup(name, email, password);
+      console.log('Registration response:', response);
       setIsRegistered(true);
-      toast.success('Account created successfully! Please check your email to verify your account.');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to register. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Registration error:', err);
+      toast.success('Registration successful! Please check your email to verify your account.');
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Registration error:', error.response?.data || error.message);
+      toast.error(error.response?.data?.message || 'Failed to register. Please try again.');
+      setError(error.response?.data?.message || 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }

@@ -14,51 +14,69 @@ import { MAX_DAILY_PASSWORD_RESET_ATTEMPTS } from '../config/constants.js';
 // @desc    Signup user
 export const signup = async (req, res) => {
     const { email: rawEmail, password, name } = req.body;
-    const email = rawEmail.trim(); // Trim the email
+    const email = rawEmail.trim();
     try {
+        console.log('Received signup request:', { email, name }); // Don't log password
         if(!email || !password || !name){
-            throw new Error("All fields are required"); // returns error if any field is empty
+            console.log('Missing required fields');
+            return res.status(400).json({success: false, message: "All fields are required"});
         }
 
-        const userAlreadyExists = await User.findOne({ email }); // checks for duplicates
+        const userAlreadyExists = await User.findOne({ email });
         if(userAlreadyExists){
-            return res.status(400).json({success: false, message: "User already exists"}); // returns error if user already exists
+            console.log('User already exists:', email);
+            return res.status(400).json({success: false, message: "User already exists"});
         }
 
-        const hashedPassword = await bcryptjs.hash(password, 10); // hashed user password
-        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString(); // creates verification token
+        const hashedPassword = await bcryptjs.hash(password, 10);
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
         const user = new User({
-            email: email.trim(),        // Trim the email before saving
-            password: hashedPassword,   // saves hashed password
-            name,                       // saves user name
-            lastLogin: new Date(),      // default value for new users
-            isVerified: false,          // default value for new users
-            verificationToken,          //  temporal save verification token on database
-            verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hrs expiration
-
+            email: email.trim(),
+            password: hashedPassword,
+            name,
+            lastLogin: new Date(),
+            isVerified: false,
+            verificationToken,
+            verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         });
 
-        await user.save(); // saves user to database
-        // res.status(201).json({success: true, message: "User created successfully"}); // returns success message
+        await user.save();
 
-        // generate jwt token
-        generateJwtTokenAndSetCookie(res, user._id);
+        // Generate JWT token
+        const { accessToken, refreshToken } = generateJwtToken(user._id);
 
-        // send verification email
+        // Set cookies
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        // Send verification email
         await sendVerificationEmail(user.email, verificationToken);
 
-        // return response
         res.status(201).json({
             success: true,
             message: "User created successfully. Please check your email for verification.",
             user: {
-              ...user._doc,
-              password: undefined,
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isVerified: user.isVerified,
             },
         });
 
     } catch (error) {
-        res.status(400).json({success: false, message: error.message});
+        console.error("Error in signup:", error);
+        res.status(500).json({success: false, message: error.message});
     }
 }
 

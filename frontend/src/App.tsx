@@ -1,11 +1,11 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Router and Routes for navigation
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Router and Routes for navigation
 import { ToastContainer } from 'react-toastify'; // Toast container for notifications
 import 'react-toastify/dist/ReactToastify.css'; // Toast container styles
 import ErrorBoundary from './components/ErrorBoundary'; // Error boundary to catch errors in the app
 import Layout from './components/Layout'; // Layout component to wrap the app
 import LoadingSpinner from './components/common/LoadingSpinner'; // Loading spinner component
-import { AuthProvider, useAuth } from './contexts/AuthContext'; // Import AuthProvider
+import { AuthProvider } from './contexts/AuthContext'; // Import AuthProvider
 import EmailVerification from './pages/EmailVerification'; //
 
 // Lazy imports for code splitting 
@@ -18,18 +18,12 @@ const Pricing = lazy(() => import('./pages/Pricing')); // Lazy import for Pricin
 const Dashboard = lazy(() => import('./components/Dashboard')); // Add this line
 const ResetPassword = lazy(() => import('./pages/ResetPassword')); // Lazy import for ResetPassword page
 
-// Protected route component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-};
-
 // Main App component
 const App: React.FC = () => {
   return (
     <ErrorBoundary> {/* Error boundary to catch errors in the app */}
-      <AuthProvider> {/* Wrap the entire app with AuthProvider */}
-        <Router> {/* Router to handle navigation */}
+      <Router> {/* Router to handle navigation */}
+        <AuthProvider> {/* Wrap the entire app with AuthProvider */}
           <Layout> {/* Layout component to wrap the app */}
             <Suspense fallback={<LoadingSpinner />}> {/* Suspense to handle lazy loading */}
               <Routes>
@@ -40,21 +34,14 @@ const App: React.FC = () => {
                 <Route path="/portfolio" element={<Portfolio />} /> {/* Portfolio page route */}
                 <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
                 <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
               </Routes>
             </Suspense>
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} /> {/* Toast container for notifications */}
           </Layout>
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </ErrorBoundary>
   );
 };

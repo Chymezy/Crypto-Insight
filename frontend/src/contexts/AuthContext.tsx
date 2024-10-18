@@ -1,50 +1,66 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User } from '../types';
-import { login as apiLogin, signup as apiRegister, logout as apiLogout, getCurrentUser } from '../services/api';
+import api from '../services/api';
+import { AxiosError } from 'axios';
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthStatus = async () => {
       try {
-        const userData = await getCurrentUser();
-        setUser(userData);
+        const response = await api.get('/auth/me');
+        setUser(response.data);
+        setIsAuthenticated(true);
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error('Error checking auth status:', error);
         setUser(null);
+        setIsAuthenticated(false);
       }
     };
-
-    checkAuth();
+    checkAuthStatus();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const userData = await apiLogin(email, password);
-    setUser(userData);
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    await apiRegister(name, email, password);
-    // Don't set the user here, as they need to verify their email first
+    const response = await api.post('/auth/login', { email, password });
+    setUser(response.data.user);
+    setIsAuthenticated(true);
   };
 
   const logout = async () => {
-    await apiLogout();
+    await api.post('/auth/logout');
     setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const signup = async (name: string, email: string, password: string) => {
+    try {
+      const response = await api.post('/auth/signup', { name, email, password });
+      // Don't set the user or isAuthenticated here, as the user needs to verify their email first
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error('Signup error:', error.response?.data || error.message);
+        throw error.response?.data || error;
+      } else {
+        console.error('Signup error:', error);
+        throw error;
+      }
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, signup, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

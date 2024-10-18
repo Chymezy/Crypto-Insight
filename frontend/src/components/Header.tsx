@@ -17,28 +17,28 @@ const Header: React.FC = () => {
   return (
     <>
       <header className="bg-gray-100 dark:bg-gray-800 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
+          <Link to="/" className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             CryptoInsight
           </Link>
           <nav className="hidden md:block">
-            <ul className="flex space-x-4">
+            <ul className="flex space-x-6">
               {navItems.map((item) => (
                 <li key={item.name}>
-                  <Link to={item.path} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                  <Link to={item.path} className="text-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                     {item.name}
                   </Link>
                 </li>
               ))}
               {user ? (
                 <>
-                  <li><span className="text-gray-700 dark:text-gray-300">Welcome, {user.name}</span></li>
-                  <li><Button onClick={logout}>Logout</Button></li>
+                  <li><span className="text-lg text-gray-700 dark:text-gray-300">Welcome, {user.name}</span></li>
+                  <li><Button onClick={logout} className="text-lg">Logout</Button></li>
                 </>
               ) : (
                 <>
-                  <li><Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Login</Link></li>
-                  <li><Link to="/register" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Register</Link></li>
+                  <li><Link to="/login" className="text-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Login</Link></li>
+                  <li><Link to="/register" className="text-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Register</Link></li>
                 </>
               )}
             </ul>
@@ -47,7 +47,7 @@ const Header: React.FC = () => {
             className="md:hidden text-gray-700 dark:text-gray-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -56,13 +56,13 @@ const Header: React.FC = () => {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-gray-100 dark:bg-gray-800 py-2">
-          <ul className="px-4">
+        <div className="md:hidden bg-gray-100 dark:bg-gray-800 py-4">
+          <ul className="px-4 space-y-4">
             {navItems.map((item) => (
-              <li key={item.name} className="py-2">
+              <li key={item.name}>
                 <Link
                   to={item.path}
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="text-xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -71,13 +71,13 @@ const Header: React.FC = () => {
             ))}
             {user ? (
               <>
-                <li className="py-2"><span className="text-gray-700 dark:text-gray-300">Welcome, {user.name}</span></li>
-                <li className="py-2"><Button onClick={logout}>Logout</Button></li>
+                <li><span className="text-xl text-gray-700 dark:text-gray-300">Welcome, {user.name}</span></li>
+                <li><Button onClick={logout} className="text-xl">Logout</Button></li>
               </>
             ) : (
               <>
-                <li className="py-2"><Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>Login</Link></li>
-                <li className="py-2"><Link to="/register" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>Register</Link></li>
+                <li><Link to="/login" className="text-xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>Login</Link></li>
+                <li><Link to="/register" className="text-xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>Register</Link></li>
               </>
             )}
           </ul>
@@ -86,7 +86,7 @@ const Header: React.FC = () => {
 
       {/* Mobile bottom navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-800 shadow-lg">
-        <ul className="flex justify-around py-2">
+        <ul className="flex justify-around py-3">
           {navItems.map((item) => (
             <li key={item.name}>
               <Link
@@ -97,10 +97,10 @@ const Header: React.FC = () => {
                     : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                 </svg>
-                <span className="text-xs mt-1">{item.name}</span>
+                <span className="text-sm mt-1">{item.name}</span>
               </Link>
             </li>
           ))}
