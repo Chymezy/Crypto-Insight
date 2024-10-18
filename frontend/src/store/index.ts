@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import cryptoReducer from './slices/cryptoSlice';
+import portfolioReducer from './slices/portfolioSlice';
 
 export const store = configureStore({
   reducer: {
     crypto: cryptoReducer,
+    portfolio: portfolioReducer,
   },
 });
 

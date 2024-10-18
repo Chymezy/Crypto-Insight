@@ -12,7 +12,7 @@ import EmailVerification from './pages/EmailVerification'; //
 const Home = lazy(() => import('./pages/Home')); // Lazy import for Home page 
 const Login = lazy(() => import('./pages/Login')); // Lazy import for Login page
 const Register = lazy(() => import('./pages/Register')); // Lazy import for Register page
-const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Portfolio = lazy(() => import('./pages/Portfolio')); // Update this line
 const AssetDetails = lazy(() => import('./pages/AssetDetails')); // Lazy import for Asset details page
 const Pricing = lazy(() => import('./pages/Pricing')); // Lazy import for Pricing page
 const Dashboard = lazy(() => import('./components/Dashboard')); // Add this line

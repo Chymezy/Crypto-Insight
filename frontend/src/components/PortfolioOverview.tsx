@@ -1,64 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import AssetList from './AssetList';
-import { fetchPortfolioData, fetchPerformanceData } from '../services/api';
-import { Portfolio, PortfolioData, PerformanceData } from '../types';
+import { fetchPortfolios, fetchPerformance, setSelectedPortfolio } from '../store/slices/portfolioSlice';
+import { RootState, AppDispatch } from '../store';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { Portfolio, Asset } from '../types';
 
 const PortfolioOverview: React.FC = () => {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
-  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { portfolios, selectedPortfolio, performanceData, loading, error } = useSelector((state: RootState) => state.portfolio);
   const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d' | '1y'>('7d');
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const portfolioData = await fetchPortfolioData();
-      console.log('Fetched portfolio data:', portfolioData);
-      
-      if (Array.isArray(portfolioData) && portfolioData.length > 0) {
-        setPortfolios(portfolioData);
-        setSelectedPortfolio(portfolioData[0]);
-      } else if (typeof portfolioData === 'object' && portfolioData !== null && 'data' in portfolioData) {
-        const portfoliosData = portfolioData.data as Portfolio[];
-        setPortfolios(portfoliosData);
-        setSelectedPortfolio(portfoliosData[0]);
-      } else {
-        throw new Error('Invalid data format received from API');
-      }
-    } catch (err) {
-      setError('Failed to fetch portfolio data');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchPerformance = useCallback(async (portfolioId: string) => {
-    try {
-      console.log(`Fetching performance for portfolio ${portfolioId}`);
-      const performance = await fetchPerformanceData(portfolioId, timeframe);
-      console.log('Fetched performance data:', performance);
-      setPerformanceData(performance);
-    } catch (error) {
-      console.error('Failed to fetch performance data:', error);
-      setPerformanceData([]);
-    }
-  }, [timeframe]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    dispatch(fetchPortfolios());
+  }, [dispatch]);
 
   useEffect(() => {
     if (selectedPortfolio) {
-      console.log('Selected portfolio changed:', selectedPortfolio);
-      fetchPerformance(selectedPortfolio.id);
+      dispatch(fetchPerformance({ portfolioId: selectedPortfolio.id, timeframe }));
     }
-  }, [selectedPortfolio, fetchPerformance]);
+  }, [dispatch, selectedPortfolio, timeframe]);
 
   if (loading) {
     return <div className="text-center">Loading...</div>;
@@ -72,11 +34,11 @@ const PortfolioOverview: React.FC = () => {
     return <div className="text-center">No portfolio data available</div>;
   }
 
-  const totalAssets = portfolios.reduce((total, portfolio) => total + portfolio.assets.length, 0);
+  const totalAssets = portfolios.reduce((total: number, portfolio: Portfolio) => total + portfolio.assets.length, 0);
 
   const calculateChange = (changeType: '1d' | '7d' | '24h') => {
-    const totalChange = selectedPortfolio.assets.reduce((sum, asset) => {
-      const change = asset[`priceChange${changeType}`] || 0;
+    const totalChange = selectedPortfolio.assets.reduce((sum: number, asset: Asset) => {
+      const change = asset[`priceChange${changeType}` as keyof Asset] as number || 0;
       return sum + (change * asset.value);
     }, 0);
     return (totalChange / selectedPortfolio.totalValue) * 100;
@@ -103,9 +65,14 @@ const PortfolioOverview: React.FC = () => {
         <select
           className="mb-4 p-2 rounded bg-gray-700"
           value={selectedPortfolio.id}
-          onChange={(e) => setSelectedPortfolio(portfolios.find(p => p.id === e.target.value) || null)}
+          onChange={(e) => {
+            const portfolio = portfolios.find((p: Portfolio) => p.id === e.target.value);
+            if (portfolio) {
+              dispatch(setSelectedPortfolio(portfolio));
+            }
+          }}
         >
-          {portfolios.map(portfolio => (
+          {portfolios.map((portfolio: Portfolio) => (
             <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>
           ))}
         </select>
@@ -183,7 +150,7 @@ const PortfolioOverview: React.FC = () => {
       ) : (
         <div className="mb-12">
           <h2 className="text-3xl font-bold mb-6">Portfolio Performance</h2>
-          <p>Performance data is not available at the moment. Debug info: {JSON.stringify({ selectedPortfolio, timeframe })}</p>
+          <p className="text-red-500">Unable to load performance data. Please try again later.</p>
         </div>
       )}
 
