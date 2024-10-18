@@ -360,8 +360,23 @@ export const refreshToken = async (req, res) => {
             return res.status(401).json({ success: false, message: "User not found" });
         }
 
-        // Generate new access token
-        const accessToken = generateJwtTokenAndSetCookie(res, user._id);
+        // Generate new tokens
+        const { accessToken, refreshToken: newRefreshToken } = generateJwtToken(user._id);
+
+        // Set new cookies
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+
+        res.cookie('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
         res.status(200).json({ success: true, accessToken });
     } catch (error) {

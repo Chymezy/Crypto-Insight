@@ -79,6 +79,15 @@ export const getDetailedAssetInfo = async (assets) => {
     }
 };
 
+const calculatePortfolioTotalValue = (assets) => {
+    return assets.reduce((total, asset) => {
+        if (asset.value !== null) {
+            return total + asset.value;
+        }
+        return total;
+    }, 0);
+};
+
 // Get all portfolios for the user
 export const getAllPortfolios = async (req, res) => {
     try {
@@ -99,7 +108,7 @@ export const getAllPortfolios = async (req, res) => {
         const portfoliosWithDetails = await Promise.all(user.portfolios.map(async (portfolio) => {
             try {
                 const detailedAssets = await getDetailedAssetInfo(portfolio.assets);
-                const totalValue = detailedAssets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+                const totalValue = calculatePortfolioTotalValue(detailedAssets);
 
                 return {
                     id: portfolio._id,
@@ -206,7 +215,7 @@ export const getPortfolio = async (req, res) => {
 
         try {
             detailedAssets = await getDetailedAssetInfo(portfolio.assets);
-            totalValue = detailedAssets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+            totalValue = calculatePortfolioTotalValue(detailedAssets);
         } catch (error) {
             console.error('Error fetching detailed asset info:', error);
             // Continue with the available data
@@ -259,7 +268,7 @@ export const updatePortfolio = async (req, res) => {
         await invalidatePortfolioCache(portfolioId);
 
         const detailedAssets = await getDetailedAssetInfo(portfolio.assets);
-        const totalValue = detailedAssets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+        const totalValue = calculatePortfolioTotalValue(detailedAssets);
 
         const updatedPortfolioData = {
             id: portfolio._id,
