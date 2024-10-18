@@ -1,15 +1,12 @@
 export interface Asset {
+  id: string;
   name: string;
   symbol: string;
   value: number;
   change: number;
-  color: string;
-}
-
-export interface PortfolioData {
-  totalValue: number;
-  change: number;
-  assets: Asset[];
+  amount: number;
+  image: string;
+  priceChange24h?: number;
 }
 
 export interface PerformanceData {
@@ -74,3 +71,16 @@ export interface Crypto {
   market_cap: number;
   total_volume: number;
 }
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  totalValue: number;
+  change: number;
+  assets: Asset[];
+}
+
+// Update PortfolioData to be either a single Portfolio or an array of Portfolios
+export type PortfolioData = Portfolio | Portfolio[];

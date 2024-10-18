@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import { PortfolioData, PerformanceData, Transaction, User, Asset, Crypto, DetailedAsset } from '../types';
+import { PortfolioData, PerformanceData, Transaction, User, Asset, Crypto, DetailedAsset, Portfolio } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
 
@@ -104,8 +104,18 @@ export const getCurrentUser = async (): Promise<User> => {
 
 // Portfolio APIs
 export const fetchPortfolioData = async (): Promise<PortfolioData> => {
-  const response = await api.get<PortfolioData>('/portfolio');
-  return response.data;
+  try {
+    const response = await api.get<{ success: boolean; message: string; data: Portfolio[] }>('/portfolios');
+    console.log('API response:', response.data);
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch portfolio data');
+    }
+  } catch (error) {
+    console.error('Error fetching portfolio data:', error);
+    throw error;
+  }
 };
 
 export const fetchPerformanceData = async (period: string = '1m'): Promise<PerformanceData[]> => {
