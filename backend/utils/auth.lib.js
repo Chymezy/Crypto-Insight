@@ -2,18 +2,32 @@ import jwt from "jsonwebtoken";
 
 // @desc    Generate JWT token and set cookie
 export const generateJwtTokenAndSetCookie = (res, userId) => {
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET, { 
-        expiresIn: "7d", 
-    }); // create token
-    
-    res.cookie("token", token, {
+    // Comment out or remove these lines
+    console.log('JWT_SECRET:', process.env.JWT_SECRET);
+    console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
+
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+        throw new Error('JWT secrets are not defined in environment variables');
+    }
+
+    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+    res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes
     });
-    
-    return token;
+
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    return accessToken;
 }
 
 // Helper function to check password strength
@@ -74,4 +88,15 @@ export const changePassword = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error changing password', error: error.message });
     }
+};
+
+export const generateJwtToken = (userId) => {
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+        throw new Error('JWT secrets are not defined in environment variables');
+    }
+
+    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
 };

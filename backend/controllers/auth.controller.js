@@ -1,8 +1,9 @@
 import bcryptjs from "bcryptjs";
 import crypto from "crypto";
+import jwt from 'jsonwebtoken';
 
 import { User } from "../models/user.model.js";
-import { generateJwtTokenAndSetCookie, isPasswordStrong } from "../utils/auth.lib.js";
+import { generateJwtToken, isPasswordStrong } from "../utils/auth.lib.js";
 import { 
     sendWelcomeEmail, 
     sendVerificationEmail, 
@@ -120,6 +121,7 @@ export const login = async (req, res) => {
     const email = rawEmail.trim(); // Trim the email
 
     try {
+        console.log("Login attempt started");
         console.log("Login attempt for email:", email);
 
         if (!email || !password) {
@@ -147,8 +149,25 @@ export const login = async (req, res) => {
         user.lastLogin = new Date();
         await user.save();
 
-        // Generate JWT token and set cookie
-        generateJwtTokenAndSetCookie(res, user._id);
+        // Generate JWT tokens
+        console.log("Generating JWT tokens");
+        const { accessToken, refreshToken } = generateJwtToken(user._id);
+        console.log("JWT tokens generated successfully");
+
+        // Set cookies
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
         // Send welcome email if user is not verified
         if (!user.isVerified) {
@@ -322,3 +341,31 @@ export const getCurrentUser = async (req, res) => {
         res.status(500).json({ success: false, message: "An error occurred while fetching the user" });
     }
 }
+
+export const refreshToken = async (req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({ success: false, message: "Refresh token not found" });
+        }
+
+        // Verify the refresh token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+        // Find the user
+        const user = await User.findById(decoded.userId);
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: "User not found" });
+        }
+
+        // Generate new access token
+        const accessToken = generateJwtTokenAndSetCookie(res, user._id);
+
+        res.status(200).json({ success: true, accessToken });
+    } catch (error) {
+        console.error("Error in refreshToken:", error);
+        res.status(401).json({ success: false, message: "Invalid refresh token" });
+    }
+};
