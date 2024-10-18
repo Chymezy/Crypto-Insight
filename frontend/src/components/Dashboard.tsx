@@ -11,8 +11,9 @@ import {
   updateAssetInPortfolio,
   removeAssetFromPortfolio
 } from '../services/portfolioApi';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { fetchTopCryptos } from '../services/api'; // Import the function to fetch top cryptos
 import { formatCurrency } from '../utils/formatters';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 
 const Dashboard: React.FC = () => {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -29,12 +30,13 @@ const Dashboard: React.FC = () => {
   const [newAssetCoinId, setNewAssetCoinId] = useState('');
   const [newAssetAmount, setNewAssetAmount] = useState('');
   const [showPortfolioList, setShowPortfolioList] = useState(false);
+  const [availableCoins, setAvailableCoins] = useState<{ id: string; symbol: string; name: string }[]>([]);
 
   const fetchAllPortfolios = useCallback(async () => {
     try {
       console.log('Fetching all portfolios...');
       const data = await fetchPortfolios();
-      console.log('Fetched portfolios:', data);
+      console.log('Fetched portfolios:', JSON.stringify(data, null, 2));
       setPortfolios(data);
     } catch (error) {
       console.error('Error fetching portfolios:', error);
@@ -60,6 +62,19 @@ const Dashboard: React.FC = () => {
     };
     fetchPerformance();
   }, [selectedPortfolio, timeframe]);
+
+  useEffect(() => {
+    const loadAvailableCoins = async () => {
+      try {
+        const coins = await fetchTopCryptos();
+        setAvailableCoins(coins);
+      } catch (error) {
+        console.error('Error fetching available coins:', error);
+        setError('Failed to fetch available coins.');
+      }
+    };
+    loadAvailableCoins();
+  }, []);
 
   const handleCreatePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,11 +126,16 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAddAsset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPortfolio) return;
+  const handleAddAsset = async () => {
+    if (!selectedPortfolio || !newAssetCoinId || !newAssetAmount) {
+      setError('Please select a coin and enter an amount.');
+      return;
+    }
     try {
       const updatedPortfolio = await addAssetToPortfolio(selectedPortfolio.id, newAssetCoinId, parseFloat(newAssetAmount));
+      setPortfolios(prevPortfolios => 
+        prevPortfolios.map(p => p.id === selectedPortfolio.id ? updatedPortfolio : p)
+      );
       setSelectedPortfolio(updatedPortfolio);
       setNewAssetCoinId('');
       setNewAssetAmount('');
@@ -291,43 +311,61 @@ const Dashboard: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Assets</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedPortfolio.assets.map((asset: PortfolioAsset) => (
-                      <div key={asset.id} className="bg-gray-700 p-4 rounded-lg">
-                        <h4 className="text-lg font-semibold">{asset.name}</h4>
-                        <p className="text-gray-400">{asset.symbol}</p>
-                        <p className="text-lg font-bold mt-2">{formatCurrency(asset.value)}</p>
-                        <div className="flex items-center mt-2">
-                          <input
-                            type="number"
-                            value={asset.amount}
-                            onChange={(e) => handleUpdateAsset(asset.id, parseFloat(e.target.value))}
-                            className="bg-gray-600 text-white p-1 rounded w-24 mr-2"
-                          />
-                          <button onClick={() => handleRemoveAsset(asset.id)} className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors duration-200">Remove</button>
+                    {selectedPortfolio.assets.map((asset: PortfolioAsset) => {
+                      console.log(`Asset ${asset.name}:`, JSON.stringify(asset, null, 2));
+                      return (
+                        <div key={asset.id} className="bg-gray-700 p-4 rounded-lg">
+                          <h4 className="text-lg font-semibold">{asset.name}</h4>
+                          <p className="text-gray-400">{asset.symbol}</p>
+                          <p className="text-lg font-bold mt-2">
+                            Amount: {asset.amount}
+                          </p>
+                          <p className="text-lg font-bold mt-2">
+                            Value: {formatCurrency(asset.value)}
+                          </p>
+                          <div className="flex items-center mt-2">
+                            <input
+                              type="number"
+                              value={asset.amount}
+                              onChange={(e) => handleUpdateAsset(asset.id, parseFloat(e.target.value))}
+                              className="bg-gray-600 text-white p-1 rounded w-24 mr-2"
+                            />
+                            <button onClick={() => handleRemoveAsset(asset.id)} className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors duration-200">Remove</button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                  <form onSubmit={handleAddAsset} className="mt-6">
-                    <h3 className="text-xl font-semibold mb-2">Add New Asset</h3>
-                    <div className="flex space-x-2">
-                      <input
-                        type="text"
+                  <div className="mt-8 bg-gray-800 p-4 rounded-lg">
+                    <h3 className="text-xl font-semibold mb-4 text-white">Add New Asset</h3>
+                    <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+                      <select
                         value={newAssetCoinId}
                         onChange={(e) => setNewAssetCoinId(e.target.value)}
-                        placeholder="Coin ID"
-                        className="bg-gray-700 text-white p-2 rounded flex-grow"
-                      />
+                        className="p-2 bg-gray-700 text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select a coin</option>
+                        {availableCoins.map((coin) => (
+                          <option key={coin.id} value={coin.id}>
+                            {coin.symbol.toUpperCase()} - {coin.name}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
                         value={newAssetAmount}
                         onChange={(e) => setNewAssetAmount(e.target.value)}
                         placeholder="Amount"
-                        className="bg-gray-700 text-white p-2 rounded w-32"
+                        className="p-2 bg-gray-700 text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <button type="submit" className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-colors duration-200">Add Asset</button>
+                      <button
+                        onClick={handleAddAsset}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200"
+                      >
+                        Add Asset
+                      </button>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </div>
             ) : (
