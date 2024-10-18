@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
 
 export const protectRoute = async (req, res, next) => {
-    console.log('protectRoute middleware called');
+    console.log('protectRoute middleware called for:', req.originalUrl);
     let token = req.cookies.accessToken;
 
     if (!token) {
@@ -12,6 +12,13 @@ export const protectRoute = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Check if user is already attached to the request
+        if (req.user && req.user._id.toString() === decoded.userId) {
+            console.log('User already authenticated, skipping database query');
+            return next();
+        }
+
         const user = await User.findById(decoded.userId).select('-password');
 
         if (!user) {

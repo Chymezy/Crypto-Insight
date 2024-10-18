@@ -118,9 +118,29 @@ export const fetchPortfolioData = async (): Promise<PortfolioData> => {
   }
 };
 
-export const fetchPerformanceData = async (period: string = '1m'): Promise<PerformanceData[]> => {
-  const response = await api.get<PerformanceData[]>(`/portfolio/performance?period=${period}`);
-  return response.data;
+export const fetchPerformanceData = async (portfolioId: string, timeframe: string = '7d'): Promise<PerformanceData[]> => {
+  try {
+    console.log(`Fetching performance data for portfolio ${portfolioId} with timeframe ${timeframe}`);
+    const response = await api.get<{ success: boolean; data: any }>(`/portfolios/${portfolioId}/performance?timeframe=${timeframe}`);
+    console.log('Performance data response:', response.data);
+    
+    if (response.data.success && response.data.data) {
+      // Transform the data to match the PerformanceData type
+      const transformedData: PerformanceData[] = [
+        {
+          date: new Date().toISOString(), // You might want to use a more appropriate date
+          value: response.data.data.endValue
+        }
+      ];
+      return transformedData;
+    } else {
+      console.error('Unexpected performance data format:', response.data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching performance data:', error);
+    return [];
+  }
 };
 
 export const fetchTransactions = async (page: number = 1, limit: number = 10): Promise<Transaction[]> => {

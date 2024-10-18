@@ -6,6 +6,8 @@ export interface Asset {
   change: number;
   amount: number;
   image: string;
+  priceChange1d?: number;
+  priceChange7d?: number;
   priceChange24h?: number;
 }
 
