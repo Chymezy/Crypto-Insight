@@ -5,6 +5,7 @@ import { fetchPortfolios, setSelectedPortfolio } from '../store/slices/portfolio
 import { Portfolio, Asset } from '../types';
 import { addAssetToPortfolio, removeAssetFromPortfolio, updateAssetInPortfolio, createPortfolio, updatePortfolio, deletePortfolio } from '../services/api';
 import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 
 const PortfolioManagement: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -13,10 +14,17 @@ const PortfolioManagement: React.FC = () => {
   const [newPortfolioData, setNewPortfolioData] = useState({ name: '', description: '' });
   const [newAssetData, setNewAssetData] = useState({ coinId: '', amount: 0 });
   const [editingAsset, setEditingAsset] = useState<{ id: string; amount: number } | null>(null);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    dispatch(fetchPortfolios());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchPortfolios());
+    }
+  }, [dispatch, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <div>Please log in to view your portfolios.</div>;
+  }
 
   const handleCreatePortfolio = async () => {
     try {

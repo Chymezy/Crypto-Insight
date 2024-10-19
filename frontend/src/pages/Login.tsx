@@ -1,5 +1,5 @@
 import React, { useState } from 'react'; // React for JSX and component-based UI  
-import { Link, useNavigate } from 'react-router-dom'; // React Router for navigation
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // React Router for navigation
 import { motion } from 'framer-motion'; // Framer Motion for animations
 import { toast } from 'react-toastify'; // Toast notifications
 import Button from '../components/common/Button'; // Button component
@@ -16,6 +16,7 @@ const Login: React.FC = () => { // Login component
   const { login } = useAuth(); // Authentication hook
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,9 @@ const Login: React.FC = () => { // Login component
     try {
       await login(email, password);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      // Redirect to the page they were trying to access, or to dashboard if they weren't trying to access a specific page
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     } catch (err) {
       toast.error('Failed to login. Please check your credentials and try again.');
       console.error('Login error:', err);

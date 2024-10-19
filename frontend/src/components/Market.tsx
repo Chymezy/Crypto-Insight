@@ -1,36 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { fetchTopCryptos } from '../services/api';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { fetchTopCryptos } from '../store/slices/cryptoSlice';
 import { Crypto } from '../types';
 import { FaSearch, FaSort } from 'react-icons/fa';
 import LoadingSkeleton from './LoadingSkeleton';
 
 const Market: React.FC = () => {
-  const [cryptos, setCryptos] = useState<Crypto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { topCryptos, loading, error } = useSelector((state: RootState) => state.crypto);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Crypto; direction: 'ascending' | 'descending' }>({ key: 'market_cap', direction: 'descending' });
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const cryptosData = await fetchTopCryptos();
-        setCryptos(cryptosData);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching market data:', err);
-        setError('Failed to fetch market data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+    dispatch(fetchTopCryptos());
+  }, [dispatch]);
 
   const handleSort = (key: keyof Crypto) => {
     setSortConfig(prevConfig => ({
@@ -39,8 +23,8 @@ const Market: React.FC = () => {
     }));
   };
 
-  const sortedCryptos = React.useMemo(() => {
-    const sortableItems = [...cryptos];
+  const sortedCryptos = useMemo(() => {
+    const sortableItems = [...topCryptos];
     if (sortConfig.key) {
       sortableItems.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -53,16 +37,16 @@ const Market: React.FC = () => {
       });
     }
     return sortableItems;
-  }, [cryptos, sortConfig]);
+  }, [topCryptos, sortConfig]);
 
   const filteredCryptos = sortedCryptos.filter(crypto =>
     crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="text-center py-8">Loading market data...</div>;
+  if (loading) return <LoadingSkeleton />;
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
-  if (cryptos.length === 0) return <div className="text-center py-8">No cryptocurrency data available.</div>;
+  if (topCryptos.length === 0) return <div className="text-center py-8">No cryptocurrency data available.</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -103,7 +87,7 @@ const Market: React.FC = () => {
           </thead>
           <tbody>
             {filteredCryptos.map((crypto, index) => (
-              <tr key={crypto.id} className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer" onClick={() => navigate(`/asset/${crypto.id}`)}>
+              <tr key={crypto.id} className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">
                   <div className="flex items-center">

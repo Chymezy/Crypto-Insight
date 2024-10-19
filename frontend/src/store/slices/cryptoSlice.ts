@@ -1,21 +1,22 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Crypto } from '../../types';
+import { fetchTopCryptos as fetchTopCryptosAPI } from '../../services/api';
 
-interface CryptoState {
-  topCryptos: Crypto[];
-  loading: boolean;
-  error: string | null;
-}
-
-const initialState: CryptoState = {
-  topCryptos: [],
-  loading: false,
-  error: null,
-};
+export const fetchTopCryptos = createAsyncThunk(
+  'crypto/fetchTopCryptos',
+  async () => {
+    const response = await fetchTopCryptosAPI();
+    return response;
+  }
+);
 
 const cryptoSlice = createSlice({
   name: 'crypto',
-  initialState,
+  initialState: {
+    topCryptos: [] as Crypto[],
+    loading: false,
+    error: null as string | null,
+  },
   reducers: {
     setTopCryptos: (state, action: PayloadAction<Crypto[]>) => {
       state.topCryptos = action.payload;
@@ -26,6 +27,20 @@ const cryptoSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTopCryptos.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTopCryptos.fulfilled, (state, action) => {
+        state.loading = false;
+        state.topCryptos = action.payload;
+      })
+      .addCase(fetchTopCryptos.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'An error occurred';
+      });
   },
 });
 

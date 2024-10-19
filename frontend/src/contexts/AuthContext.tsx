@@ -1,72 +1,85 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
-import { AxiosError } from 'axios';
+import { login, logout, signup, getCurrentUser, forgotPassword, resetPassword } from '../services/api';
+import { User } from '../types';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
-  isAuthenticated: boolean;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const initAuth = async () => {
       try {
-        const response = await api.get('/auth/me');
-        setUser(response.data);
-        setIsAuthenticated(true);
+        setIsLoading(true);
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
-        console.error('Error checking auth status:', error);
+        console.error('Failed to fetch user:', error);
         setUser(null);
-        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
     };
-    checkAuthStatus();
+    initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
-    setUser(response.data.user);
-    setIsAuthenticated(true);
+  const loginHandler = async (email: string, password: string) => {
+    const user = await login(email, password);
+    setUser(user);
   };
 
-  const logout = async () => {
-    await api.post('/auth/logout');
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  const signup = async (name: string, email: string, password: string) => {
+  const logoutHandler = async () => {
     try {
-      const response = await api.post('/auth/signup', { name, email, password });
-      // Don't set the user or isAuthenticated here, as the user needs to verify their email first
-      return response.data;
+      await logout();
+      setUser(null);
     } catch (error) {
-      if (error instanceof AxiosError) {
-        console.error('Signup error:', error.response?.data || error.message);
-        throw error.response?.data || error;
-      } else {
-        console.error('Signup error:', error);
-        throw error;
-      }
+      console.error('Logout failed:', error);
     }
   };
 
+  const signupHandler = async (name: string, email: string, password: string) => {
+    await signup(name, email, password);
+    // Note: We don't set the user here as they might need to verify their email first
+  };
+
+  const forgotPasswordHandler = async (email: string) => {
+    await forgotPassword(email);
+  };
+
+  const resetPasswordHandler = async (email: string, token: string, newPassword: string) => {
+    await resetPassword(email, token, newPassword);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, isAuthenticated }}>
+    <AuthContext.Provider 
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login: loginHandler,
+        logout: logoutHandler,
+        signup: signupHandler,
+        forgotPassword: forgotPasswordHandler,
+        resetPassword: resetPasswordHandler,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Export the useAuth hook separately
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

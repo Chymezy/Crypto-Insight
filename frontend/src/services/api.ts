@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { PortfolioData, PerformanceData, Transaction, User, Asset, Crypto, DetailedAsset, Portfolio } from '../types';
 import { getFromCache, setInCache, invalidateCache, invalidateCacheStartingWith } from '../utils/cacheUtils';
 
@@ -9,7 +9,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // This ensures cookies are sent with requests
+  withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -31,32 +31,32 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && originalRequest && !originalRequest.headers['X-Retry']) {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => {
+        try {
+          const token = await new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
           return api(originalRequest);
-        }).catch(err => {
+        } catch (err) {
           return Promise.reject(err);
-        });
+        }
       }
 
+      originalRequest._retry = true;
       isRefreshing = true;
-      originalRequest.headers['X-Retry'] = 'true';
 
       try {
-        const { data } = await api.post('/auth/refresh-token');
-        isRefreshing = false;
-        processQueue(null, data.accessToken);
+        await refreshToken();
+        processQueue(null, 'dummy_token');
         return api(originalRequest);
       } catch (refreshError) {
-        isRefreshing = false;
         processQueue(refreshError, null);
-        // Logout user or redirect to login page
-        // For example: window.location.href = '/login';
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
@@ -72,6 +72,9 @@ export const login = async (email: string, password: string): Promise<User> => {
 
 export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');
+  // Clear any local storage or cookies related to authentication
+  // For example, if you're using localStorage:
+  // localStorage.removeItem('authToken');
 };
 
 export const refreshToken = async (): Promise<void> => {
@@ -100,6 +103,16 @@ export const verifyToken = async (token: string): Promise<boolean> => {
 
 export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get<User>('/auth/me');
+  return response.data;
+};
+
+export const forgotPassword = async (email: string) => {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (email: string, token: string, newPassword: string) => {
+  const response = await api.post('/auth/reset-password', { email, token, newPassword });
   return response.data;
 };
 
@@ -257,7 +270,6 @@ export const fetchOHLCData = async (assetId: string, timeframe: string): Promise
 export const post = api.post.bind(api); // Bind the post method to the api instance
 
 export default api;
-
 // Add these functions to your api.ts file
 
 export const addAssetToPortfolio = async (portfolioId: string, coinId: string, amount: number): Promise<void> => {

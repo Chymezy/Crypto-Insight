@@ -6,7 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary'; // Error boundary to cat
 import Layout from './components/Layout'; // Layout component to wrap the app
 import LoadingSpinner from './components/common/LoadingSpinner'; // Loading spinner component
 import { AuthProvider } from './contexts/AuthContext'; // Import AuthProvider
-import EmailVerification from './pages/EmailVerification'; //
+import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 // Lazy imports for code splitting 
 const Home = lazy(() => import('./pages/Home')); // Lazy import for Home page 
@@ -19,6 +19,7 @@ const Dashboard = lazy(() => import('./components/Dashboard')); // Add this line
 const ResetPassword = lazy(() => import('./pages/ResetPassword')); // Lazy import for ResetPassword page
 const News = lazy(() => import('./components/News')); // Add this line
 const Market = lazy(() => import('./components/Market')); // Add this line
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail')); // Lazy import for VerifyEmail page
 
 // Main App component
 const App: React.FC = () => {
@@ -29,17 +30,36 @@ const App: React.FC = () => {
           <Layout> {/* Layout component to wrap the app */}
             <Suspense fallback={<LoadingSpinner />}> {/* Suspense to handle lazy loading */}
               <Routes>
+                {/* Public routes */}
                 <Route path="/" element={<Home />} /> {/* Home page route */}
                 <Route path="/login" element={<Login />} /> {/* Login page route */}
-                <Route path="/verify-email" element={<EmailVerification />} />
                 <Route path="/register" element={<Register />} /> {/* Register page route */}
-                <Route path="/portfolio" element={<Portfolio />} /> {/* Portfolio page route */}
-                <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
-                <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
                 <Route path="/news" element={<News />} /> {/* Add this line */}
-                <Route path="/markets" element={<Market />} /> {/* Add this line */}
+                <Route path="/market" element={<Market />} /> {/* Add this line */}
+                
+                {/* Protected routes */}
+                <Route 
+                  path="/portfolio" 
+                  element={
+                    <ProtectedRoute>
+                      <Portfolio />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* ... other routes */}
+                <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
               </Routes>
             </Suspense>
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} /> {/* Toast container for notifications */}

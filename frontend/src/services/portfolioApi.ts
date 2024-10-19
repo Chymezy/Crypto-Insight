@@ -1,12 +1,5 @@
-import axios from 'axios';
+import api from './api';  // Import the main api instance
 import { Portfolio, PortfolioPerformance } from '../types/portfolio.types';
-
-const API_URL = 'http://localhost:5001/api/v1';
-
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
 
 export const fetchPortfolios = async (): Promise<Portfolio[]> => {
   try {
