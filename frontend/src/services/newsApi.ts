@@ -1,6 +1,6 @@
 import { NewsResponse, NewsItem } from '../types/news';
 import api from './api';
-import { getFromCache, setInCache, invalidateCacheStartingWith } from '../utils/cacheUtils';
+import { getFromCache, setInCache, invalidateCacheStartingWith, invalidateCache } from '../utils/cacheUtils';
 
 export const fetchNews = async (
   category?: string, 
@@ -75,5 +75,24 @@ export const shareNews = async (newsItem: NewsItem): Promise<void> => {
 };
 
 export const invalidateNewsCache = () => {
-  invalidateCacheStartingWith('news_');
+  invalidateCache('latestNews');
+};
+
+export const fetchLatestNews = async (limit: number = 5): Promise<NewsItem[]> => {
+  const cacheKey = `latest_news_${limit}`;
+
+  const cachedData = getFromCache<NewsItem[]>(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  try {
+    const response = await api.get<NewsResponse>(`/news?limit=${limit}&sortBy=date`);
+    const latestNews = response.data.data.news;
+    setInCache(cacheKey, latestNews);
+    return latestNews;
+  } catch (error) {
+    console.error('Error fetching latest news:', error);
+    return [];
+  }
 };
