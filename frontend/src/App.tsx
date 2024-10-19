@@ -18,6 +18,7 @@ const Pricing = lazy(() => import('./pages/Pricing')); // Lazy import for Pricin
 const Dashboard = lazy(() => import('./components/Dashboard')); // Add this line
 const ResetPassword = lazy(() => import('./pages/ResetPassword')); // Lazy import for ResetPassword page
 const News = lazy(() => import('./components/News')); // Add this line
+const Market = lazy(() => import('./components/Market')); // Add this line
 
 // Main App component
 const App: React.FC = () => {
@@ -38,6 +39,7 @@ const App: React.FC = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/news" element={<News />} /> {/* Add this line */}
+                <Route path="/markets" element={<Market />} /> {/* Add this line */}
               </Routes>
             </Suspense>
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} /> {/* Toast container for notifications */}

@@ -221,17 +221,12 @@ export const fetchPriceHistory = async (assetId: string, timeframe: '24h' | '7d'
 
 export const fetchTopCryptos = async (): Promise<Crypto[]> => {
   try {
-    // Remove the duplicate '/api/v1' from the URL
     const response = await api.get<Crypto[]>('/crypto/top');
-    if (Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      console.error('Unexpected data format:', response.data);
-      throw new Error('Fetched data is not a non-empty array');
-    }
+    console.log('Fetched crypto data:', response.data);
+    return response.data;
   } catch (error) {
     console.error('Error fetching top cryptos:', error);
-    throw error; // Re-throw the error to be handled by the component
+    throw error;
   }
 };
 
