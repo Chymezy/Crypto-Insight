@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { NewsItem } from '../types/news';
 import NewsCard from './NewsCard';
-import { fetchNews } from '../services/newsApi';
-import { FaSearch } from 'react-icons/fa';
-import LoadingSkeleton from './LoadingSkeleton';
+import { fetchNews, bookmarkNews, shareNews, markNewsAsRead, isNewsBookmarked, isNewsRead } from '../services/newsApi';
+import { FaSearch, FaSort } from 'react-icons/fa';
+import LoadingSkeleton from "./LoadingSkeleton";
 
 const News: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
@@ -13,18 +13,26 @@ const News: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState<'date' | 'popularity' | 'relevance'>('date');
+  const [bookmarkedNews, setBookmarkedNews] = useState<Set<string>>(new Set());
+  const [readNews, setReadNews] = useState<Set<string>>(new Set());
 
   const categories = ['', 'Bitcoin', 'Ethereum', 'Blockchain', 'DeFi', 'NFTs', 'Regulation'];
   const itemsPerPage = 6;
 
   useEffect(() => {
     loadNews();
-  }, [selectedCategory, page]);
+    // Load bookmarked and read news from local storage
+    const storedBookmarks = JSON.parse(localStorage.getItem('bookmarkedNews') || '[]');
+    const storedReadNews = JSON.parse(localStorage.getItem('readNews') || '[]');
+    setBookmarkedNews(new Set(storedBookmarks));
+    setReadNews(new Set(storedReadNews));
+  }, [selectedCategory, page, sortBy]);
 
   const loadNews = async () => {
     try {
       setLoading(true);
-      const data = await fetchNews(selectedCategory === '' ? undefined : selectedCategory, searchTerm, page, itemsPerPage);
+      const data = await fetchNews(selectedCategory === '' ? undefined : selectedCategory, searchTerm, page, itemsPerPage, sortBy);
       setNewsItems(data.news);
       setTotalPages(Math.ceil(data.totalCount / itemsPerPage));
       setError(null);
@@ -44,6 +52,28 @@ const News: React.FC = () => {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setPage(1);
+  };
+
+  const handleBookmark = (id: string) => {
+    bookmarkNews(id);
+    setBookmarkedNews(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleShare = (newsItem: NewsItem) => {
+    shareNews(newsItem);
+  };
+
+  const handleRead = (id: string) => {
+    markNewsAsRead(id);
+    setReadNews(prev => new Set(prev).add(id));
   };
 
   return (
@@ -67,6 +97,15 @@ const News: React.FC = () => {
           <FaSearch className="inline mr-2" />
           Search
         </button>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'date' | 'popularity' | 'relevance')}
+          className="p-2 rounded bg-gray-700 text-white ml-4"
+        >
+          <option value="date">Latest</option>
+          <option value="popularity">Popular</option>
+          <option value="relevance">Relevant</option>
+        </select>
       </div>
 
       <div className="mb-6 overflow-x-auto whitespace-nowrap">
@@ -92,7 +131,15 @@ const News: React.FC = () => {
       ) : newsItems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {newsItems.map(newsItem => (
-            <NewsCard key={newsItem.id} newsItem={newsItem} />
+            <NewsCard 
+              key={newsItem.id} 
+              newsItem={newsItem} 
+              isBookmarked={isNewsBookmarked(newsItem.id)}
+              isRead={isNewsRead(newsItem.id)}
+              onBookmark={handleBookmark}
+              onShare={handleShare}
+              onRead={handleRead}
+            />
           ))}
         </div>
       ) : (
