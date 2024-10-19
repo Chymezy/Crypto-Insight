@@ -1,19 +1,13 @@
 import { NewsResponse } from '../types/news';
 import api from './api';
+import { getFromCache, setInCache, invalidateCacheStartingWith } from '../utils/cacheUtils';
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-const cache: { [key: string]: { data: NewsResponse['data']; timestamp: number } } = {};
-
-const isCacheValid = (key: string) => {
-  const cached = cache[key];
-  return cached && Date.now() - cached.timestamp < CACHE_DURATION;
-};
-
-export const fetchNews = async (category?: string, search?: string, page: number = 1, limit: number = 10): Promise<NewsResponse['data']> => {
+export const fetchNews = async (category?: string, search?: string, page: number = 1, limit: number = 6): Promise<NewsResponse['data']> => {
   const cacheKey = `news_${category || 'all'}_${search || ''}_${page}_${limit}`;
 
-  if (isCacheValid(cacheKey)) {
-    return cache[cacheKey].data;
+  const cachedData = getFromCache<NewsResponse['data']>(cacheKey);
+  if (cachedData) {
+    return cachedData;
   }
 
   let url = `/news?page=${page}&limit=${limit}`;
@@ -23,10 +17,14 @@ export const fetchNews = async (category?: string, search?: string, page: number
   const response = await api.get<NewsResponse>(url);
   const data = response.data.data;
 
-  cache[cacheKey] = { data, timestamp: Date.now() };
+  setInCache(cacheKey, data);
   return data;
 };
 
 export const searchNews = async (query: string): Promise<NewsResponse['data']> => {
   return fetchNews(undefined, query);
+};
+
+export const invalidateNewsCache = () => {
+  invalidateCacheStartingWith('news_');
 };

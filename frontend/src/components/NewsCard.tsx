@@ -6,13 +6,18 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem }) => {
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + '...';
+  };
+
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       <img src={newsItem.imageurl} alt={newsItem.title} className="w-full h-48 object-cover" />
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-2">{newsItem.title}</h2>
-        <p className="text-gray-400 mb-4">{newsItem.body}</p>
-        <div className="flex justify-between items-center">
+      <div className="p-4 flex flex-col flex-grow">
+        <h2 className="text-xl font-semibold mb-2">{truncateText(newsItem.title, 60)}</h2>
+        <p className="text-gray-400 mb-4 flex-grow overflow-hidden">{truncateText(newsItem.body, 100)}</p>
+        <div className="flex justify-between items-center mt-auto">
           <span className="text-sm text-gray-500">{newsItem.source}</span>
           <a 
             href={newsItem.url} 

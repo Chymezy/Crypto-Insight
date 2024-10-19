@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { PortfolioData, PerformanceData, Transaction, User, Asset, Crypto, DetailedAsset, Portfolio } from '../types';
+import { getFromCache, setInCache, invalidateCache, invalidateCacheStartingWith } from '../utils/cacheUtils';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
 
@@ -155,8 +156,14 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>): Prom
 
 // Asset APIs
 export const fetchAssetDetails = async (assetId: string): Promise<DetailedAsset> => {
+  const cacheKey = `asset_details_${assetId}`;
+
+  const cachedData = getFromCache<DetailedAsset>(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
   try {
-    // Remove the duplicate '/api/v1'
     const response = await api.get<{ success: boolean; data: DetailedAsset }>(`/crypto/assets/${assetId}`);
     console.log('Raw API response:', response.data);
 
@@ -166,6 +173,8 @@ export const fetchAssetDetails = async (assetId: string): Promise<DetailedAsset>
 
     const formattedData = response.data.data;
     console.log('Formatted data:', formattedData);
+
+    setInCache(cacheKey, formattedData);
     return formattedData;
   } catch (error) {
     console.error('Error fetching asset details:', error);
@@ -258,28 +267,36 @@ export default api;
 
 export const addAssetToPortfolio = async (portfolioId: string, coinId: string, amount: number): Promise<void> => {
   await api.post(`/portfolios/${portfolioId}/assets`, { coinId, amount });
+  invalidateCache(`portfolio_${portfolioId}`);
 };
 
 export const updateAssetInPortfolio = async (portfolioId: string, assetId: string, newAmount: number): Promise<void> => {
   await api.put(`/portfolios/${portfolioId}/assets/${assetId}`, { amount: newAmount });
+  invalidateCache(`portfolio_${portfolioId}`);
 };
 
 export const removeAssetFromPortfolio = async (portfolioId: string, assetId: string): Promise<void> => {
   await api.delete(`/portfolios/${portfolioId}/assets/${assetId}`);
+  invalidateCache(`portfolio_${portfolioId}`);
 };
 
 // Add or update these functions in your api.ts file
 
 export const createPortfolio = async (portfolioData: { name: string; description: string }): Promise<Portfolio> => {
   const response = await api.post<Portfolio>('/portfolios', portfolioData);
+  invalidateCacheStartingWith('portfolio_');
   return response.data;
 };
 
 export const updatePortfolio = async (portfolioId: string, portfolioData: { name: string; description: string }): Promise<Portfolio> => {
   const response = await api.put<Portfolio>(`/portfolios/${portfolioId}`, portfolioData);
+  invalidateCache(`portfolio_${portfolioId}`);
+  invalidateCacheStartingWith('portfolio_list');
   return response.data;
 };
 
 export const deletePortfolio = async (portfolioId: string): Promise<void> => {
   await api.delete(`/portfolios/${portfolioId}`);
+  invalidateCache(`portfolio_${portfolioId}`);
+  invalidateCacheStartingWith('portfolio_list');
 };

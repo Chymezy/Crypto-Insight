@@ -15,6 +15,7 @@ const News: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   const categories = ['', 'Bitcoin', 'Ethereum', 'Blockchain', 'DeFi', 'NFTs', 'Regulation'];
+  const itemsPerPage = 6;
 
   useEffect(() => {
     loadNews();
@@ -23,9 +24,9 @@ const News: React.FC = () => {
   const loadNews = async () => {
     try {
       setLoading(true);
-      const data = await fetchNews(selectedCategory === '' ? undefined : selectedCategory, searchTerm, page);
+      const data = await fetchNews(selectedCategory === '' ? undefined : selectedCategory, searchTerm, page, itemsPerPage);
       setNewsItems(data.news);
-      setTotalPages(data.totalPages);
+      setTotalPages(Math.ceil(data.totalCount / itemsPerPage));
       setError(null);
     } catch (err) {
       setError('Failed to load news');
@@ -99,7 +100,7 @@ const News: React.FC = () => {
       )}
 
       {totalPages > 1 && (
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center items-center">
           <button
             onClick={() => setPage(prev => Math.max(prev - 1, 1))}
             disabled={page === 1}
@@ -107,7 +108,9 @@ const News: React.FC = () => {
           >
             Previous
           </button>
-          <span className="px-4 py-2">Page {page} of {totalPages}</span>
+          <span className="mx-4">
+            Page {page} of {totalPages}
+          </span>
           <button
             onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
             disabled={page === totalPages}
