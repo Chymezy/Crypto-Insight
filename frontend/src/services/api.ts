@@ -72,9 +72,7 @@ export const login = async (email: string, password: string): Promise<User> => {
 
 export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');
-  // Clear any local storage or cookies related to authentication
-  // For example, if you're using localStorage:
-  // localStorage.removeItem('authToken');
+
 };
 
 export const refreshToken = async (): Promise<void> => {
@@ -272,38 +270,32 @@ export const post = api.post.bind(api); // Bind the post method to the api insta
 export default api;
 // Add these functions to your api.ts file
 
-export const addAssetToPortfolio = async (portfolioId: string, coinId: string, amount: number): Promise<void> => {
-  await api.post(`/portfolios/${portfolioId}/assets`, { coinId, amount });
-  invalidateCache(`portfolio_${portfolioId}`);
+export const addAssetToPortfolio = async (portfolioId: string, coinId: string, amount: number): Promise<Portfolio> => {
+  const response = await api.post<Portfolio>(`/portfolios/${portfolioId}/assets`, { coinId, amount });
+  return response.data;
 };
 
-export const updateAssetInPortfolio = async (portfolioId: string, assetId: string, newAmount: number): Promise<void> => {
-  await api.put(`/portfolios/${portfolioId}/assets/${assetId}`, { amount: newAmount });
-  invalidateCache(`portfolio_${portfolioId}`);
+export const updateAssetInPortfolio = async (portfolioId: string, assetId: string, amount: number): Promise<Portfolio> => {
+  const response = await api.put<Portfolio>(`/portfolios/${portfolioId}/assets/${assetId}`, { amount });
+  return response.data;
 };
 
 export const removeAssetFromPortfolio = async (portfolioId: string, assetId: string): Promise<void> => {
   await api.delete(`/portfolios/${portfolioId}/assets/${assetId}`);
-  invalidateCache(`portfolio_${portfolioId}`);
 };
 
 // Add or update these functions in your api.ts file
 
 export const createPortfolio = async (portfolioData: { name: string; description: string }): Promise<Portfolio> => {
   const response = await api.post<Portfolio>('/portfolios', portfolioData);
-  invalidateCacheStartingWith('portfolio_');
   return response.data;
 };
 
 export const updatePortfolio = async (portfolioId: string, portfolioData: { name: string; description: string }): Promise<Portfolio> => {
   const response = await api.put<Portfolio>(`/portfolios/${portfolioId}`, portfolioData);
-  invalidateCache(`portfolio_${portfolioId}`);
-  invalidateCacheStartingWith('portfolio_list');
   return response.data;
 };
 
 export const deletePortfolio = async (portfolioId: string): Promise<void> => {
   await api.delete(`/portfolios/${portfolioId}`);
-  invalidateCache(`portfolio_${portfolioId}`);
-  invalidateCacheStartingWith('portfolio_list');
 };

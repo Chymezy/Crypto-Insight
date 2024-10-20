@@ -165,8 +165,8 @@ export const createPortfolio = async (req, res) => {
 
         const createdPortfolio = user.portfolios[user.portfolios.length - 1];
 
-        // Update Redis cache
-        await redisClient.set(`user:${user._id}`, JSON.stringify(user), 'EX', 3600);
+        // Invalidate the portfolios cache for this user
+        await redisClient.del(`user:${user._id}:portfolios`);
 
         sendSuccessResponse(res, 201, 'Portfolio created successfully', {
             portfolio: {

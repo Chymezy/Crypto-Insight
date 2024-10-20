@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { login, logout, signup, getCurrentUser, forgotPassword, resetPassword } from '../services/api';
+import { login, logout, signup, getCurrentUser, forgotPassword, resetPassword, refreshToken } from '../services/api';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -17,19 +17,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        setIsLoading(true);
+        setLoading(true);
         const currentUser = await getCurrentUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Failed to fetch user:', error);
-        setUser(null);
+        // If getCurrentUser fails, try to refresh the token
+        try {
+          await refreshToken();
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
+        } catch (refreshError) {
+          console.error('Failed to refresh token:', refreshError);
+          setUser(null);
+        }
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
     initAuth();
@@ -67,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isAuthenticated: !!user,
-        isLoading,
+        isLoading: loading,
         login: loginHandler,
         logout: logoutHandler,
         signup: signupHandler,

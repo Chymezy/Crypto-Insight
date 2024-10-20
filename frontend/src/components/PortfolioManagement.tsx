@@ -130,7 +130,7 @@ const PortfolioManagement: React.FC = () => {
           onChange={(e) => setSelectedPortfolio(portfolios.find((p: Portfolio) => p.id === e.target.value) || null)}
           className="w-full p-2 mb-4 bg-gray-700 rounded"
         >
-          <option value="">Select a portfolio</option>
+          <option key="default" value="">Select a portfolio</option>
           {portfolios.map((portfolio: Portfolio) => (
             <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>
           ))}

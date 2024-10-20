@@ -93,9 +93,9 @@ const Home: React.FC = () => {
       </motion.section>
 
       {/* Top Cryptocurrencies Section */}
-      <section className="py-16 bg-gray-800">
+      <section className="py-8 md:py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Top Cryptocurrencies</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-12">Top Cryptocurrencies</h2>
           {loading && <p className="text-center">Loading top cryptocurrencies...</p>}
           {error && <p className="text-center text-red-500">{error}</p>}
           {!loading && !error && Array.isArray(currentCryptos) && currentCryptos.length > 0 ? (
@@ -118,20 +118,20 @@ const Home: React.FC = () => {
                       className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleAssetClick(crypto.id)}
                     >
-                      <td className="py-4 px-4">{indexOfFirstItem + index + 1}</td>
-                      <td className="py-4 px-4">
+                      <td className="py-2 md:py-4 px-2 md:px-4">{indexOfFirstItem + index + 1}</td>
+                      <td className="py-2 md:py-4 px-2 md:px-4">
                         <div className="flex items-center">
                           <img src={crypto.image} alt={crypto.name} className="w-6 h-6 mr-2" />
-                          <span>{crypto.name}</span>
-                          <span className="text-gray-400 ml-2">{crypto.symbol.toUpperCase()}</span>
+                          <span className="hidden sm:inline">{crypto.name}</span>
+                          <span className="sm:ml-2">{crypto.symbol.toUpperCase()}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4">${crypto.current_price.toLocaleString()}</td>
-                      <td className={`py-4 px-4 ${crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      <td className="py-2 md:py-4 px-2 md:px-4">${crypto.current_price.toLocaleString()}</td>
+                      <td className={`py-2 md:py-4 px-2 md:px-4 ${crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                         {crypto.price_change_percentage_24h.toFixed(2)}%
                       </td>
-                      <td className="py-4 px-4 hidden sm:table-cell">${crypto.market_cap.toLocaleString()}</td>
-                      <td className="py-4 px-4 hidden md:table-cell">${crypto.total_volume.toLocaleString()}</td>
+                      <td className="py-2 md:py-4 px-2 md:px-4 hidden sm:table-cell">${crypto.market_cap.toLocaleString()}</td>
+                      <td className="py-2 md:py-4 px-2 md:px-4 hidden md:table-cell">${crypto.total_volume.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -141,18 +141,20 @@ const Home: React.FC = () => {
             <p className="text-center">No cryptocurrency data available.</p>
           )}
           {/* Pagination */}
-          <div className="flex justify-center mt-8">
-            {Array.from({ length: Math.ceil(topCryptos.length / itemsPerPage) }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => paginate(i + 1)}
-                className={`mx-1 px-3 py-1 rounded ${
-                  currentPage === i + 1 ? 'bg-blue-600' : 'bg-gray-700'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div className="flex justify-center mt-8 overflow-x-auto">
+            <div className="inline-flex">
+              {Array.from({ length: Math.ceil(topCryptos.length / itemsPerPage) }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => paginate(i + 1)}
+                  className={`mx-1 px-3 py-1 rounded text-sm md:text-base ${
+                    currentPage === i + 1 ? 'bg-blue-600' : 'bg-gray-700'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -187,8 +189,8 @@ const Home: React.FC = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-gray-800">
-        <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+      <section className="py-8 md:py-16 bg-gray-800">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-12">How It Works</h2>
         <div className="max-w-4xl mx-auto px-4">
           {[
             { step: 1, title: 'Create an Account', description: 'Sign up for free and set up your profile in minutes.' },
@@ -197,17 +199,17 @@ const Home: React.FC = () => {
           ].map((item) => (
             <motion.div 
               key={item.step}
-              className="flex items-center mb-8"
+              className="flex items-start md:items-center mb-6 md:mb-8"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 * item.step }}
             >
-              <div className="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold mr-4">
+              <div className="bg-blue-600 rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center text-lg md:text-2xl font-bold mr-4 flex-shrink-0">
                 {item.step}
               </div>
               <div>
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="text-gray-300">{item.description}</p>
+                <h3 className="text-lg md:text-xl font-semibold">{item.title}</h3>
+                <p className="text-sm md:text-base text-gray-300">{item.description}</p>
               </div>
             </motion.div>
           ))}

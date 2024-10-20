@@ -50,18 +50,19 @@ const Market: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Cryptocurrency Market</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Cryptocurrency Market</h1>
 
-      <div className="mb-6 flex items-center">
+      <div className="mb-6 flex flex-col sm:flex-row items-center">
         <input
           type="text"
           placeholder="Search cryptocurrencies..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-grow p-2 rounded bg-gray-700 text-white"
+          className="w-full sm:w-auto flex-grow p-2 rounded bg-gray-700 text-white mb-2 sm:mb-0 sm:mr-2"
         />
-        <button className="ml-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          <FaSearch />
+        <button className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <FaSearch className="inline mr-2" />
+          Search
         </button>
       </div>
 
@@ -77,10 +78,10 @@ const Market: React.FC = () => {
               <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('price_change_percentage_24h')}>
                 24h % <FaSort />
               </th>
-              <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('market_cap')}>
+              <th className="p-2 text-right cursor-pointer hidden sm:table-cell" onClick={() => handleSort('market_cap')}>
                 Market Cap <FaSort />
               </th>
-              <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('total_volume')}>
+              <th className="p-2 text-right cursor-pointer hidden md:table-cell" onClick={() => handleSort('total_volume')}>
                 Volume (24h) <FaSort />
               </th>
             </tr>
@@ -92,7 +93,7 @@ const Market: React.FC = () => {
                 <td className="p-2">
                   <div className="flex items-center">
                     <img src={crypto.image} alt={crypto.name} className="w-6 h-6 mr-2" />
-                    <span>{crypto.name}</span>
+                    <span className="hidden sm:inline">{crypto.name}</span>
                     <span className="text-gray-400 ml-2">{crypto.symbol.toUpperCase()}</span>
                   </div>
                 </td>
@@ -100,8 +101,8 @@ const Market: React.FC = () => {
                 <td className={`p-2 text-right ${crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {crypto.price_change_percentage_24h.toFixed(2)}%
                 </td>
-                <td className="p-2 text-right">${crypto.market_cap.toLocaleString()}</td>
-                <td className="p-2 text-right">${crypto.total_volume.toLocaleString()}</td>
+                <td className="p-2 text-right hidden sm:table-cell">${crypto.market_cap.toLocaleString()}</td>
+                <td className="p-2 text-right hidden md:table-cell">${crypto.total_volume.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

@@ -3,7 +3,6 @@ import PortfolioOverview from './PortfolioOverview';
 import { fetchLatestNews } from '../services/newsApi';
 import { NewsItem } from '../types/news';
 import { FaNewspaper, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { getFromCache, setInCache } from '../utils/cacheUtils';
 
 // Placeholder components
 const MarketOverview = () => <div>Market Overview</div>;
@@ -22,20 +21,10 @@ const NewsSummary: React.FC = () => {
 
   useEffect(() => {
     const loadNewsSummary = async () => {
-      const cacheKey = 'latestNews';
-      const cachedNews = getFromCache<NewsItem[]>(cacheKey);
-
-      if (cachedNews) {
-        setLatestNews(cachedNews);
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        const news = await fetchLatestNews(15); // Fetch more news items to allow for pagination
+        const news = await fetchLatestNews(15);
         setLatestNews(news);
-        setInCache(cacheKey, news);
         setError(null);
       } catch (err) {
         console.error('Error fetching latest news:', err);
@@ -64,25 +53,25 @@ const NewsSummary: React.FC = () => {
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
   return (
-    <div className="news-summary bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 flex items-center">
+    <div className="news-summary bg-gray-800 rounded-lg shadow-lg p-4 md:p-6">
+      <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center">
         <FaNewspaper className="mr-2" />
         Latest Crypto News
       </h2>
       <div className="latest-headlines space-y-4">
         {currentItems.map(news => (
-          <div key={news.id} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors duration-200">
+          <div key={news.id} className="bg-gray-700 rounded-lg p-3 md:p-4 hover:bg-gray-600 transition-colors duration-200">
             <a 
               href={news.url} 
               target="_blank" 
               rel="noopener noreferrer" 
               className="block"
             >
-              <h3 className="text-lg font-semibold mb-2 text-blue-400 hover:text-blue-300">
+              <h3 className="text-base md:text-lg font-semibold mb-2 text-blue-400 hover:text-blue-300">
                 {news.title}
               </h3>
-              <p className="text-gray-300 text-sm mb-2">
-                {news.body.length > 100 ? `${news.body.substring(0, 100)}...` : news.body}
+              <p className="text-gray-300 text-sm mb-2 line-clamp-2">
+                {news.body}
               </p>
               <div className="flex justify-between items-center text-xs text-gray-400">
                 <span>{new Date(news.published_on * 1000).toLocaleString()}</span>
@@ -99,17 +88,17 @@ const NewsSummary: React.FC = () => {
         <button 
           onClick={prevPage} 
           disabled={currentPage === 1}
-          className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          className={`px-2 py-1 rounded ${currentPage === 1 ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
           <FaChevronLeft />
         </button>
-        <span className="text-gray-400">
+        <span className="text-gray-400 text-sm">
           Page {currentPage} of {totalPages}
         </span>
         <button 
           onClick={nextPage} 
           disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          className={`px-2 py-1 rounded ${currentPage === totalPages ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
           <FaChevronRight />
         </button>
@@ -144,13 +133,13 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row">
-      <nav className="w-full md:w-64 bg-gray-800 p-4">
-        <ul>
+      <nav className="w-full md:w-64 bg-gray-800 p-4 mb-4 md:mb-0">
+        <ul className="flex md:flex-col overflow-x-auto md:overflow-x-visible">
           {['Portfolio', 'Market', 'News', 'Social', 'Alerts', 'AI Insights', 'Transactions'].map((item) => (
-            <li key={item} className="mb-2">
+            <li key={item} className="mb-2 mr-2 md:mr-0">
               <button
                 onClick={() => setActiveSection(item.toLowerCase().replace(' ', ''))}
-                className={`w-full text-left p-2 rounded ${
+                className={`w-full text-left p-2 rounded whitespace-nowrap ${
                   activeSection === item.toLowerCase().replace(' ', '') ? 'bg-blue-600' : 'hover:bg-gray-700'
                 }`}
               >

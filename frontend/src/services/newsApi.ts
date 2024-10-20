@@ -1,6 +1,6 @@
 import { NewsResponse, NewsItem } from '../types/news';
 import api from './api';  // Import the main api instance
-import { getFromCache, setInCache, invalidateCacheStartingWith, invalidateCache } from '../utils/cacheUtils';
+import { getFromCache, setInCache, invalidateCache } from '../utils/cacheUtils';
 
 export const fetchNews = async (
   category?: string, 

@@ -30,18 +30,23 @@ const PortfolioOverview: React.FC = () => {
     return <div className="text-center text-red-500">{error}</div>;
   }
 
-  if (!selectedPortfolio) {
-    return <div className="text-center">No portfolio data available</div>;
+  const portfolio = selectedPortfolio || portfolios[0];
+
+  if (!portfolio) {
+    return <div>No portfolio available. Please create a portfolio.</div>;
   }
 
-  const totalAssets = portfolios.reduce((total: number, portfolio: Portfolio) => total + portfolio.assets.length, 0);
+  const totalAssets = portfolio.assets ? portfolio.assets.length : 0;
 
   const calculateChange = (changeType: '1d' | '7d' | '24h') => {
-    const totalChange = selectedPortfolio.assets.reduce((sum: number, asset: Asset) => {
+    if (!portfolio.assets || portfolio.assets.length === 0) {
+      return 0;
+    }
+    const totalChange = portfolio.assets.reduce((sum: number, asset: Asset) => {
       const change = asset[`priceChange${changeType}` as keyof Asset] as number || 0;
-      return sum + (change * asset.value);
+      return sum + (change * (asset.value || 0));
     }, 0);
-    return (totalChange / selectedPortfolio.totalValue) * 100;
+    return portfolio.totalValue ? (totalChange / portfolio.totalValue) * 100 : 0;
   };
 
   const change1d = calculateChange('1d');
@@ -64,23 +69,23 @@ const PortfolioOverview: React.FC = () => {
       {portfolios.length > 1 && (
         <select
           className="mb-4 p-2 rounded bg-gray-700"
-          value={selectedPortfolio.id}
+          value={portfolio.id}
           onChange={(e) => {
-            const portfolio = portfolios.find((p: Portfolio) => p.id === e.target.value);
-            if (portfolio) {
-              dispatch(setSelectedPortfolio(portfolio));
+            const selectedPortfolio = portfolios.find((p: Portfolio) => p.id === e.target.value);
+            if (selectedPortfolio) {
+              dispatch(setSelectedPortfolio(selectedPortfolio));
             }
           }}
         >
-          {portfolios.map((portfolio: Portfolio) => (
-            <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>
+          {portfolios.map((p: Portfolio) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gray-800 p-4 rounded-lg">
           <h3 className="text-lg font-medium mb-2">Total Value</h3>
-          <p className="text-2xl font-bold">${selectedPortfolio.totalValue.toFixed(2)}</p>
+          <p className="text-2xl font-bold">${portfolio.totalValue?.toFixed(2) || '0.00'}</p>
         </div>
         <div className="bg-gray-800 p-4 rounded-lg">
           <h3 className="text-lg font-medium mb-2">Number of Assets</h3>
@@ -154,7 +159,7 @@ const PortfolioOverview: React.FC = () => {
         </div>
       )}
 
-      <AssetList assets={selectedPortfolio.assets} />
+      {portfolio.assets && <AssetList assets={portfolio.assets} />}
     </div>
   );
 };
