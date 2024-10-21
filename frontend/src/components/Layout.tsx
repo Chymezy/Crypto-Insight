@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import logoImage from '../assets/mylogo.svg'; // Make sure this path is correct
 import { FaBars, FaTimes, FaChartLine, FaWallet, FaChartBar, FaNewspaper, FaSignOutAlt, FaSignInAlt, FaApple, FaGooglePlay } from 'react-icons/fa';
+import BackgroundAnimation from './BackgroundAnimation';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, logout } = useAuth();
@@ -18,7 +19,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white relative overflow-hidden">
+      <BackgroundAnimation />
       {/* Desktop Header */}
       <header className="bg-gray-800 text-white p-4 hidden md:block">
         <div className="container mx-auto flex justify-between items-center">

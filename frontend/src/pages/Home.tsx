@@ -85,16 +85,16 @@ const Home: React.FC = () => {
             transition={{ delay: 0.6, type: 'spring' }}
           >
             <Link to="/register">
-              <Button className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700">Get Started for Free</Button>
+              <Button className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold">Sign Up for Free</Button>
             </Link>
           </motion.div>
         </div>
       </motion.section>
 
       {/* Top Cryptocurrencies Section */}
-      <section className="py-8 md:py-16 bg-gray-800">
+      <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-12">Top Cryptocurrencies</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Top Cryptocurrencies</h2>
           {loading && <p className="text-center">Loading top cryptocurrencies...</p>}
           {error && <p className="text-center text-red-500">{error}</p>}
           {!loading && !error && Array.isArray(displayedCryptos) && displayedCryptos.length > 0 ? (
@@ -170,7 +170,7 @@ const Home: React.FC = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 * (index + 1) }}
-                className="bg-gray-700 p-6 rounded-lg text-center hover:shadow-lg transition-shadow duration-300"
+                className="bg-gray-800 p-6 rounded-lg text-center hover:shadow-lg transition-shadow duration-300"
               >
                 <feature.icon className="text-4xl mb-4 text-blue-500 mx-auto" />
                 <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
@@ -182,9 +182,9 @@ const Home: React.FC = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-8 md:py-16 bg-gray-800">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-12">How It Works</h2>
-        <div className="max-w-4xl mx-auto px-4">
+      <section className="py-16 bg-gray-800 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 relative z-10">
+          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
           {[
             { step: 1, title: 'Create an Account', description: 'Sign up for free and set up your profile in minutes.' },
             { step: 2, title: 'Connect Your Wallets', description: 'Easily connect your cryptocurrency wallets and exchange accounts.' },
@@ -192,29 +192,61 @@ const Home: React.FC = () => {
           ].map((item) => (
             <motion.div 
               key={item.step}
-              className="flex items-start md:items-center mb-6 md:mb-8"
+              className="flex items-center mb-8"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 * item.step }}
             >
-              <div className="bg-blue-600 rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center text-lg md:text-2xl font-bold mr-4 flex-shrink-0">
+              <div className="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold mr-4">
                 {item.step}
               </div>
               <div>
-                <h3 className="text-lg md:text-xl font-semibold">{item.title}</h3>
-                <p className="text-sm md:text-base text-gray-300">{item.description}</p>
+                <h3 className="text-xl font-semibold">{item.title}</h3>
+                <p className="text-gray-300">{item.description}</p>
               </div>
             </motion.div>
           ))}
         </div>
+        {/* Add background animation */}
+        <div className="absolute inset-0 z-0">
+          <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <motion.path
+              d="M0,0 Q50,50 100,0 V100 H0 Z"
+              fill="rgba(59, 130, 246, 0.1)"
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+            />
+          </svg>
+        </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-center">
-        <h2 className="text-3xl font-bold mb-8">Ready to Take Control of Your Crypto Investments?</h2>
-        <Link to="/register">
-          <Button className="text-lg px-8 py-3 bg-white text-blue-600 hover:bg-gray-100">Sign Up Now - It's Free!</Button>
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-center relative overflow-hidden">
+        <h2 className="text-3xl font-bold mb-8 relative z-10">Ready to Take Control of Your Crypto Investments?</h2>
+        <Link to="/register" className="relative z-10">
+          <Button className="text-lg px-8 py-3 bg-white text-blue-600 hover:bg-gray-100 font-bold">Sign Up Now - It's Free!</Button>
         </Link>
+        {/* Add particle animation */}
+        <div className="absolute inset-0 z-0">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full"
+              initial={{ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight }}
+              animate={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                repeatType: 'reverse',
+                ease: 'linear',
+              }}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );
