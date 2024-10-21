@@ -232,7 +232,7 @@ export const fetchPriceHistory = async (assetId: string, timeframe: '24h' | '7d'
 
 export const fetchTopCryptos = async (): Promise<Crypto[]> => {
   try {
-    const response = await api.get<Crypto[]>('/crypto/top');
+    const response = await api.get<Crypto[]>('/crypto/top?limit=100'); // Fetch 100 or more cryptocurrencies
     console.log('Fetched crypto data:', response.data);
     return response.data;
   } catch (error) {
@@ -299,3 +299,4 @@ export const updatePortfolio = async (portfolioId: string, portfolioData: { name
 export const deletePortfolio = async (portfolioId: string): Promise<void> => {
   await api.delete(`/portfolios/${portfolioId}`);
 };
+

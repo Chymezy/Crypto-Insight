@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store';
 import { fetchTopCryptos } from '../store/slices/cryptoSlice';
 import { Crypto } from '../types';
-import { FaSearch, FaSort } from 'react-icons/fa';
+import { FaSearch, FaSort, FaChevronDown } from 'react-icons/fa';
 import LoadingSkeleton from './LoadingSkeleton';
 
 const Market: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { topCryptos, loading, error } = useSelector((state: RootState) => state.crypto);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Crypto; direction: 'ascending' | 'descending' }>({ key: 'market_cap', direction: 'descending' });
+  const [displayCount, setDisplayCount] = useState(20);
 
   useEffect(() => {
     dispatch(fetchTopCryptos());
@@ -43,6 +46,16 @@ const Market: React.FC = () => {
     crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const displayedCryptos = filteredCryptos.slice(0, displayCount);
+
+  const handleViewMore = () => {
+    setDisplayCount(prevCount => prevCount + 20);
+  };
+
+  const handleAssetClick = (cryptoId: string) => {
+    navigate(`/asset/${cryptoId}`);
+  };
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
@@ -87,8 +100,12 @@ const Market: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredCryptos.map((crypto, index) => (
-              <tr key={crypto.id} className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
+            {displayedCryptos.map((crypto, index) => (
+              <tr 
+                key={crypto.id} 
+                className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleAssetClick(crypto.id)}
+              >
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">
                   <div className="flex items-center">
@@ -108,6 +125,17 @@ const Market: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {displayCount < filteredCryptos.length && (
+        <div className="text-center mt-6">
+          <button 
+            onClick={handleViewMore}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            View More <FaChevronDown className="inline ml-2" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

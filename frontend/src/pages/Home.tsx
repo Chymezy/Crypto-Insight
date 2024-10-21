@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
-import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock } from 'react-icons/fa';
+import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown } from 'react-icons/fa';
 import { fetchTopCryptos } from '../services/api';
 import heroImage from '../assets/hero-bg.jpg';
 import { RootState } from '../store';
@@ -14,8 +14,7 @@ const Home: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { topCryptos, loading, error } = useSelector((state: RootState) => state.crypto);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [displayCount, setDisplayCount] = useState(10);
 
   useEffect(() => {
     const loadTopCryptos = async () => {
@@ -38,15 +37,15 @@ const Home: React.FC = () => {
     loadTopCryptos();
   }, [dispatch]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentCryptos = topCryptos.slice(indexOfFirstItem, indexOfLastItem);
-
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  const handleViewMore = () => {
+    setDisplayCount(prevCount => prevCount + 10);
+  };
 
   const handleAssetClick = (assetId: string) => {
     navigate(`/asset/${assetId}`);
   };
+
+  const displayedCryptos = topCryptos.slice(0, displayCount);
 
   return (
     <div className="text-white bg-gray-900">
@@ -98,7 +97,7 @@ const Home: React.FC = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-12">Top Cryptocurrencies</h2>
           {loading && <p className="text-center">Loading top cryptocurrencies...</p>}
           {error && <p className="text-center text-red-500">{error}</p>}
-          {!loading && !error && Array.isArray(currentCryptos) && currentCryptos.length > 0 ? (
+          {!loading && !error && Array.isArray(displayedCryptos) && displayedCryptos.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -112,13 +111,13 @@ const Home: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentCryptos.map((crypto: Crypto, index: number) => (
+                  {displayedCryptos.map((crypto: Crypto, index: number) => (
                     <tr 
                       key={crypto.id} 
                       className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleAssetClick(crypto.id)}
                     >
-                      <td className="py-2 md:py-4 px-2 md:px-4">{indexOfFirstItem + index + 1}</td>
+                      <td className="py-2 md:py-4 px-2 md:px-4">{index + 1}</td>
                       <td className="py-2 md:py-4 px-2 md:px-4">
                         <div className="flex items-center">
                           <img src={crypto.image} alt={crypto.name} className="w-6 h-6 mr-2" />
@@ -140,22 +139,16 @@ const Home: React.FC = () => {
           ) : (
             <p className="text-center">No cryptocurrency data available.</p>
           )}
-          {/* Pagination */}
-          <div className="flex justify-center mt-8 overflow-x-auto">
-            <div className="inline-flex">
-              {Array.from({ length: Math.ceil(topCryptos.length / itemsPerPage) }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => paginate(i + 1)}
-                  className={`mx-1 px-3 py-1 rounded text-sm md:text-base ${
-                    currentPage === i + 1 ? 'bg-blue-600' : 'bg-gray-700'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+          {displayCount < topCryptos.length && (
+            <div className="text-center mt-6">
+              <button 
+                onClick={handleViewMore}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                View More <FaChevronDown className="inline ml-2" />
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

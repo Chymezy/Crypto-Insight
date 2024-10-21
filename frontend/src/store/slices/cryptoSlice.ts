@@ -4,9 +4,13 @@ import { fetchTopCryptos as fetchTopCryptosAPI } from '../../services/api';
 
 export const fetchTopCryptos = createAsyncThunk(
   'crypto/fetchTopCryptos',
-  async () => {
-    const response = await fetchTopCryptosAPI();
-    return response;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchTopCryptosAPI();
+      return response;
+    } catch (error) {
+      return rejectWithValue('Failed to fetch top cryptocurrencies');
+    }
   }
 );
 
