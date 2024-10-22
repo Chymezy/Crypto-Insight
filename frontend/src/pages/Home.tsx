@@ -476,10 +476,12 @@ const Home: React.FC = () => {
       {/* Enhanced CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-center relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-4xl font-bold mb-8">Ready to Revolutionize Your Crypto Journey?</h2>
-          <p className="text-xl mb-12">Join thousands of satisfied users and unlock the full potential of your investments with AI-powered insights, social trading, and more!</p>
+          <h2 className="text-4xl font-bold mb-8 text-white">Ready to Revolutionize Your Crypto Journey?</h2>
+          <p className="text-xl mb-12 text-white">Join thousands of satisfied users and unlock the full potential of your investments with AI-powered insights, social trading, and more!</p>
           <Link to="/register">
-            <Button className="text-lg px-12 py-4 bg-white text-blue-600 hover:bg-gray-100 font-bold transition duration-300 transform hover:scale-105">Start Your Free Trial Now</Button>
+            <Button className="text-lg px-12 py-4 bg-blue-800 text-white hover:bg-blue-700 font-bold transition duration-300 transform hover:scale-105 shadow-lg">
+              Start Your Free Trial Now
+            </Button>
           </Link>
         </div>
         <div className="absolute inset-0 z-0 opacity-20">
