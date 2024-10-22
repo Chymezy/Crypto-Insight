@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
-import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown, FaSearch, FaExchangeAlt, FaLink } from 'react-icons/fa';
+import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown, FaSearch, FaExchangeAlt, FaLink, FaGraduationCap, FaUsers, FaTrophy } from 'react-icons/fa';
 import { fetchTopCryptos } from '../services/api';
 import heroImage from '../assets/hero-bg.jpg';
 import { RootState } from '../store';
@@ -13,12 +13,19 @@ import applicationBackground from '../assets/application-bg.jpg';
 import happyCustomerImage from '../assets/happy-customer.webp';
 import PriceTicker from '../components/PriceTicker';
 import WalletTicker from '../components/WalletTicker';
+import AIDemo from '../components/AIDemo'; // You'll need to create this component
+import NewsWidget from '../components/NewsWidget'; // You'll need to create this component
+import tradersBackground from '../assets/entrepreneur-696976_1920.png'; // Import the new background image
+import educationImage from '../assets/crypto-education.jpg'; // Add this import at the top of the file
+import simulatorVideo from '../assets/simulator-background.mp4';
+import CryptoAnimation from '../components/CryptoAnimation';
 
 const Home: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { topCryptos, loading, error } = useSelector((state: RootState) => state.crypto);
   const [displayCount, setDisplayCount] = useState(10);
+  const [featuredCrypto, setFeaturedCrypto] = useState<Crypto | null>(null);
 
   useEffect(() => {
     const loadTopCryptos = async () => {
@@ -40,6 +47,13 @@ const Home: React.FC = () => {
     };
     loadTopCryptos();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (topCryptos.length > 0) {
+      const randomIndex = Math.floor(Math.random() * topCryptos.length);
+      setFeaturedCrypto(topCryptos[randomIndex]);
+    }
+  }, [topCryptos]);
 
   const handleViewMore = () => {
     setDisplayCount(prevCount => prevCount + 10);
@@ -217,29 +231,35 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Why Choose CryptoInsight? Section - Compact and Professional with no gaps */}
-      <section className="py-16 bg-gray-900">
+      {/* Why Choose CryptoInsight? Section - Further Enhanced */}
+      <section className="py-16 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Why Choose CryptoInsight?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose CryptoInsight?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: FaChartLine, title: 'Advanced Portfolio Tracking', description: 'Monitor investments across multiple exchanges and wallets in real-time.' },
-              { icon: FaRobot, title: 'AI-Powered Insights', description: 'Get personalized investment suggestions and market analysis.' },
-              { icon: FaChartBar, title: 'Comprehensive Market Data', description: 'Access in-depth charts, historical data, and advanced analytics.' },
-              { icon: FaMobileAlt, title: 'Mobile App', description: 'Track your portfolio on-the-go with our user-friendly mobile application.' },
-              { icon: FaDesktop, title: 'Cross-Platform Sync', description: 'Seamlessly sync your data across all your devices.' },
-              { icon: FaLock, title: 'Bank-Grade Security', description: 'Your data is protected with state-of-the-art encryption and security measures.' }
+              { icon: FaChartLine, title: 'Advanced Portfolio Tracking', description: 'Monitor investments across 100+ exchanges and 1000+ tokens in real-time.', stat: '99.9% accuracy' },
+              { icon: FaRobot, title: 'AI-Powered Insights', description: 'Get personalized suggestions with our AI that analyzes 1M+ data points daily.', stat: '85% prediction accuracy' },
+              { icon: FaChartBar, title: 'Comprehensive Market Data', description: 'Access 10+ years of historical data and 50+ technical indicators.', stat: 'Updated every 5 seconds' },
+              { icon: FaMobileAlt, title: 'Mobile App', description: 'Track your portfolio on-the-go with our app, available on iOS and Android.', stat: '4.8★ on App Store' },
+              { icon: FaDesktop, title: 'Cross-Platform Sync', description: 'Seamlessly sync your data across unlimited devices in real-time.', stat: '100% data consistency' },
+              { icon: FaLock, title: 'Bank-Grade Security', description: 'Your data is protected with AES 256-bit encryption and 2FA.', stat: 'SOC 2 Type II Certified' }
             ].map((feature, index) => (
               <motion.div 
                 key={feature.title}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 * (index + 1) }}
-                className="bg-gray-800 p-4 flex flex-col items-center border border-gray-700"
+                className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-blue-400"
+                tabIndex={0}
               >
-                <feature.icon className="text-3xl mb-2 text-blue-500" />
-                <h3 className="text-lg font-semibold mb-1 text-center">{feature.title}</h3>
-                <p className="text-gray-300 text-sm text-center">{feature.description}</p>
+                <div className="flex items-center mb-4">
+                  <feature.icon className="text-4xl text-blue-500 mr-4" aria-hidden="true" />
+                  <h3 className="text-xl font-semibold">{feature.title}</h3>
+                </div>
+                <p className="text-gray-300 text-sm mb-4">{feature.description}</p>
+                <div className="mt-auto">
+                  <span className="text-blue-400 font-semibold">{feature.stat}</span>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -313,6 +333,177 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* AI-Powered Features Showcase */}
+      <section className="py-16 bg-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Experience AI-Powered Crypto Insights</h2>
+          <AIDemo /> {/* This component should showcase AI features interactively */}
+        </div>
+      </section>
+
+      {/* Social Trading Preview */}
+      <section className="py-16 bg-gray-800 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row">
+          <div className="md:w-1/2 flex flex-col justify-center pr-8">
+            <h2 className="text-3xl font-bold mb-6">Connect with Top Traders</h2>
+            <p className="text-lg mb-6">Learn from experienced traders, share strategies, and grow your network. Join our thriving community of crypto enthusiasts and professionals.</p>
+            <Link to="/social-trading">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto">Explore Social Trading</Button>
+            </Link>
+          </div>
+          <div className="md:w-1/2 mt-8 md:mt-0">
+            <img 
+              src={tradersBackground}
+              alt="Social Trading"
+              className="w-full h-full object-cover rounded-lg shadow-lg"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Educational Content Preview */}
+      <section className="py-16 bg-gray-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Learn Crypto with CryptoInsight</h2>
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+              <img 
+                src={educationImage} 
+                alt="Crypto Education" 
+                className="rounded-lg shadow-lg w-full"
+              />
+            </div>
+            <div className="md:w-1/2">
+              <p className="text-lg mb-6">
+                Dive into the world of cryptocurrency with our comprehensive educational resources. From beginner guides to advanced trading strategies, we've got you covered.
+              </p>
+              <ul className="list-disc list-inside mb-6 text-gray-300">
+                <li>In-depth articles on blockchain technology</li>
+                <li>Video tutorials on crypto trading</li>
+                <li>Regular webinars with industry experts</li>
+                <li>Interactive quizzes to test your knowledge</li>
+              </ul>
+              <Link to="/learn">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Start Learning</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security Features Highlight */}
+      <section className="py-16 bg-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Your Security is Our Priority</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex items-start">
+              <FaLock className="text-4xl text-blue-500 mr-4" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Bank-Grade Encryption</h3>
+                <p>Your data is protected with AES 256-bit encryption.</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <FaUsers className="text-4xl text-blue-500 mr-4" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Multi-Factor Authentication</h3>
+                <p>Add an extra layer of security to your account.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Virtual Portfolio Simulator */}
+      <section className="py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gray-800">
+          <CryptoAnimation />
+        </div>
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-3xl font-bold text-center mb-6 text-white">Test Your Strategies Risk-Free</h2>
+          <p className="text-center text-xl mb-8 text-white">Practice trading with our Virtual Portfolio Simulator.</p>
+          <div className="text-center">
+            <Link to="/simulator">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                Try Simulator
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Gamification Preview */}
+      <section className="py-16 bg-gray-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Level Up Your Crypto Game</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+              <FaTrophy className="text-5xl text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Earn Achievements</h3>
+              <p className="text-gray-300">Complete challenges and showcase your crypto expertise.</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+              <FaChartLine className="text-5xl text-green-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Climb the Leaderboard</h3>
+              <p className="text-gray-300">Compete with other traders and rise to the top.</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+              <FaGraduationCap className="text-5xl text-blue-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Learn and Grow</h3>
+              <p className="text-gray-300">Gain XP and level up as you expand your knowledge.</p>
+            </div>
+          </div>
+          <div className="mt-12 text-center">
+            <Link to="/gamification">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                Start Your Crypto Journey
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Real-Time Data Showcase */}
+      <section className="py-16 bg-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Stay Ahead with Real-Time Data</h2>
+          <NewsWidget /> {/* This component should display live news updates */}
+        </div>
+      </section>
+
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-center relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-bold mb-8">Ready to Revolutionize Your Crypto Journey?</h2>
+          <p className="text-xl mb-12">Join thousands of satisfied users and unlock the full potential of your investments with AI-powered insights, social trading, and more!</p>
+          <Link to="/register">
+            <Button className="text-lg px-12 py-4 bg-white text-blue-600 hover:bg-gray-100 font-bold transition duration-300 transform hover:scale-105">Start Your Free Trial Now</Button>
+          </Link>
+        </div>
+        <div className="absolute inset-0 z-0 opacity-20">
+          <img src={applicationBackground} alt="Application Background" className="w-full h-full object-cover" />
+        </div>
+      </section>
+
+      {featuredCrypto && (
+        <section className="py-12 bg-gray-900">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold mb-6">Featured Cryptocurrency</h2>
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+              <div className="flex items-center mb-4">
+                <img src={featuredCrypto.image} alt={featuredCrypto.name} className="w-12 h-12 mr-4" />
+                <h3 className="text-xl font-semibold">{featuredCrypto.name} ({featuredCrypto.symbol.toUpperCase()})</h3>
+              </div>
+              <p className="text-2xl font-bold mb-2">${featuredCrypto.current_price.toLocaleString()}</p>
+              <p className={`text-lg ${featuredCrypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {featuredCrypto.price_change_percentage_24h.toFixed(2)}% (24h)
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };
