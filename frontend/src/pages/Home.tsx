@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
 import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown, FaSearch, FaExchangeAlt, FaLink, FaGraduationCap, FaUsers, FaTrophy } from 'react-icons/fa';
-import { fetchTopCryptos } from '../services/api';
+import { fetchTopCryptos, fetchPriceHistory } from '../services/api';
 import heroImage from '../assets/hero-bg.jpg';
 import { RootState } from '../store';
 import { setTopCryptos, setLoading, setError } from '../store/slices/cryptoSlice';
@@ -19,6 +19,7 @@ import tradersBackground from '../assets/entrepreneur-696976_1920.png'; // Impor
 import educationImage from '../assets/crypto-education.jpg'; // Add this import at the top of the file
 import simulatorVideo from '../assets/simulator-background.mp4';
 import CryptoAnimation from '../components/CryptoAnimation';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Home: React.FC = () => {
   const dispatch = useDispatch();
@@ -26,6 +27,7 @@ const Home: React.FC = () => {
   const { topCryptos, loading, error } = useSelector((state: RootState) => state.crypto);
   const [displayCount, setDisplayCount] = useState(10);
   const [featuredCrypto, setFeaturedCrypto] = useState<Crypto | null>(null);
+  const [featuredCryptoPriceHistory, setFeaturedCryptoPriceHistory] = useState<{ date: number; price: number }[]>([]);
 
   useEffect(() => {
     const loadTopCryptos = async () => {
@@ -51,7 +53,15 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (topCryptos.length > 0) {
       const randomIndex = Math.floor(Math.random() * topCryptos.length);
-      setFeaturedCrypto(topCryptos[randomIndex]);
+      const selected = topCryptos[randomIndex];
+      setFeaturedCrypto(selected);
+
+      // Fetch price history for the featured cryptocurrency
+      fetchPriceHistory(selected.id, '7d').then(history => {
+        setFeaturedCryptoPriceHistory(history);
+      }).catch(error => {
+        console.error('Error fetching price history:', error);
+      });
     }
   }, [topCryptos]);
 
@@ -490,18 +500,67 @@ const Home: React.FC = () => {
       </section>
 
       {featuredCrypto && (
-        <section className="py-12 bg-gray-900">
+        <section className="py-16 bg-gray-800">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold mb-6">Featured Cryptocurrency</h2>
-            <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-              <div className="flex items-center mb-4">
-                <img src={featuredCrypto.image} alt={featuredCrypto.name} className="w-12 h-12 mr-4" />
-                <h3 className="text-xl font-semibold">{featuredCrypto.name} ({featuredCrypto.symbol.toUpperCase()})</h3>
+            <h2 className="text-3xl font-bold mb-8">Featured Cryptocurrency</h2>
+            <div className="bg-gray-700 p-6 rounded-lg shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <img src={featuredCrypto.image} alt={featuredCrypto.name} className="w-12 h-12 mr-4" />
+                  <div>
+                    <h3 className="text-2xl font-semibold">{featuredCrypto.name}</h3>
+                    <p className="text-gray-400">{featuredCrypto.symbol.toUpperCase()}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold">${featuredCrypto.current_price.toLocaleString()}</p>
+                  <p className={`text-lg ${featuredCrypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {featuredCrypto.price_change_percentage_24h.toFixed(2)}% (24h)
+                  </p>
+                </div>
               </div>
-              <p className="text-2xl font-bold mb-2">${featuredCrypto.current_price.toLocaleString()}</p>
-              <p className={`text-lg ${featuredCrypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {featuredCrypto.price_change_percentage_24h.toFixed(2)}% (24h)
+              <p className="text-gray-300 mb-6">
+                {featuredCrypto.name} is a prominent cryptocurrency in the digital asset market. 
+                With a market cap of ${featuredCrypto.market_cap.toLocaleString()} and a 24h trading volume of ${featuredCrypto.total_volume.toLocaleString()}, 
+                it's a significant player in the crypto space. Stay updated with its performance and market trends.
               </p>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={featuredCryptoPriceHistory}>
+                  <defs>
+                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString()}
+                    stroke="#9CA3AF"
+                  />
+                  <YAxis 
+                    stroke="#9CA3AF"
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
+                    labelFormatter={(label) => new Date(label).toLocaleString()}
+                    contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
+                    itemStyle={{ color: '#E5E7EB' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke="#3B82F6" 
+                    fillOpacity={1}
+                    fill="url(#colorPrice)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+              <div className="mt-4 text-right">
+                <Link to={`/asset/${featuredCrypto.id}`} className="text-blue-400 hover:underline">
+                  View Full Details
+                </Link>
+              </div>
             </div>
           </div>
         </section>
