@@ -479,7 +479,7 @@ const Home: React.FC = () => {
           <h2 className="text-4xl font-bold mb-8 text-white">Ready to Revolutionize Your Crypto Journey?</h2>
           <p className="text-xl mb-12 text-white">Join thousands of satisfied users and unlock the full potential of your investments with AI-powered insights, social trading, and more!</p>
           <Link to="/register">
-            <Button className="text-lg px-12 py-4 bg-blue-800 text-white hover:bg-blue-700 font-bold transition duration-300 transform hover:scale-105 shadow-lg">
+            <Button className="text-lg px-12 py-4 bg-blue-600 text-white hover:bg-blue-700 font-bold transition duration-300 transform hover:scale-105 shadow-lg">
               Start Your Free Trial Now
             </Button>
           </Link>
