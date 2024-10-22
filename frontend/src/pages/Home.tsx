@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
-import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown } from 'react-icons/fa';
+import { FaChartLine, FaRobot, FaChartBar, FaMobileAlt, FaDesktop, FaLock, FaChevronDown, FaSearch, FaExchangeAlt, FaLink } from 'react-icons/fa';
 import { fetchTopCryptos } from '../services/api';
 import heroImage from '../assets/hero-bg.jpg';
 import { RootState } from '../store';
@@ -11,6 +11,9 @@ import { setTopCryptos, setLoading, setError } from '../store/slices/cryptoSlice
 import { Crypto } from '../types';
 import applicationBackground from '../assets/application-bg.jpg';
 import happyCustomerImage from '../assets/happy-customer.webp';
+import PriceTicker from '../components/PriceTicker';
+import WalletTicker from '../components/WalletTicker';
+
 const Home: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -50,6 +53,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="text-white bg-gray-900">
+      <PriceTicker />
       {/* Hero Section */}
       <motion.section 
         initial={{ opacity: 0 }}
@@ -91,6 +95,63 @@ const Home: React.FC = () => {
           </motion.div>
         </div>
       </motion.section>
+
+      {/* WalletTicker moved here, just below the hero section */}
+      <section className="py-4 bg-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <WalletTicker />
+        </div>
+      </section>
+
+      {/* Business Advertisement Section */}
+      <section className="py-8 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src={applicationBackground} alt="Application Background" className="w-full h-full object-cover opacity-50" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="md:w-2/3 mb-6 md:mb-0">
+              <h2 className="text-2xl font-bold mb-2">Maximize Your Crypto Investments</h2>
+              <p className="text-lg">Join CryptoInsight today and get personalized AI-driven insights to boost your portfolio performance!</p>
+            </div>
+            <div className="md:w-1/3 text-center">
+              <Link to="/register">
+                <Button className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold transition duration-300">Start Free Trial</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Search and Action Buttons Section */}
+      <section className="py-10 bg-gray-800 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src={applicationBackground} alt="Application Background" className="w-full h-full object-cover opacity-10" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <div className="w-full md:w-1/2 relative">
+              <input
+                type="text"
+                placeholder="Search coins..."
+                className="w-full py-3 px-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+            <div className="flex flex-wrap justify-center md:justify-end gap-4">
+              <Button className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                <FaExchangeAlt className="mr-2" /> Swap
+              </Button>
+              <Button className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                <FaLink className="mr-2" /> Connect
+              </Button>
+              <Button className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                <FaChartLine className="mr-2" /> Track Portfolio
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Remove extra space between hero and top cryptocurrencies section */}
       {/* <div className="py-10"></div> */}
@@ -224,7 +285,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* CTA Section with enhanced marketing and responsiveness */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-center relative overflow-hidden">
+      <section className="py-20 bg-gray-800 text-center relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 text-left md:pr-8">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Take Control of Your Crypto Investments?</h2>
@@ -250,9 +311,6 @@ const Home: React.FC = () => {
               className="w-full max-w-md mx-auto rounded-lg shadow-lg"
             />
           </div>
-        </div>
-        <div className="absolute inset-0 z-0">
-          <img src={applicationBackground} alt="Application Background" className="w-full h-full object-cover opacity-30" /> {/* Increased opacity from 0.1 to 0.3 */}
         </div>
       </section>
     </div>
