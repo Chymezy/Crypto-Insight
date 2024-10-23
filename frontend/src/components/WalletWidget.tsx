@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { FaWallet, FaEthereum, FaBitcoin, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaWallet, FaEthereum, FaBitcoin, FaPlus, FaTimes, FaQrcode } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { updateWalletAddress, getWalletBalance } from '../services/walletApi';
-import { User } from '../types';
+import { updateWalletAddress, getWalletBalance, validateTokenAddress } from '../services/walletApi';
+import { User, CustomToken } from '../types';
+import QrScanner from 'react-qr-scanner';
 
+// Add this type declaration for window.ethereum
 declare global {
   interface Window {
-    ethereum?: any;
-    bitcoin?: any;
+    ethereum?: {
+      request: (args: { method: string }) => Promise<string[]>;
+    };
   }
 }
 
@@ -20,11 +23,6 @@ interface WalletBalance {
   };
 }
 
-interface CustomToken {
-  name: string;
-  address: string;
-}
-
 const WalletWidget: React.FC = () => {
   const { user, updateUser } = useAuth();
   const [walletAddresses, setWalletAddresses] = useState<{[key: string]: string}>({});
@@ -34,6 +32,7 @@ const WalletWidget: React.FC = () => {
   const [customTokenName, setCustomTokenName] = useState<string>('');
   const [customTokenAddress, setCustomTokenAddress] = useState<string>('');
   const [customTokens, setCustomTokens] = useState<CustomToken[]>([]);
+  const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
 
   useEffect(() => {
     if (user && user.walletAddresses) {
@@ -46,64 +45,94 @@ const WalletWidget: React.FC = () => {
     try {
       const balancesData = await getWalletBalance();
       setBalances(balancesData);
+      if (balancesData.length === 0) {
+        toast.info('No wallet addresses found. Please connect a wallet.');
+      }
     } catch (error) {
       console.error('Error fetching balances:', error);
       toast.error('Failed to fetch wallet balances');
     }
   };
 
-  const connectWallet = async (type: string) => {
+  const connectEthereumWallet = async () => {
     setIsConnecting(true);
     try {
-      let address;
-      switch (type) {
-        case 'ethereum':
-          if (typeof window.ethereum !== 'undefined') {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            address = accounts[0];
-          } else {
-            throw new Error('Ethereum wallet not found');
-          }
-          break;
-        case 'bitcoin':
-          if (typeof window.bitcoin !== 'undefined') {
-            // This is a placeholder. Bitcoin wallet connection would work differently
-            address = await window.bitcoin.getAddress();
-          } else {
-            throw new Error('Bitcoin wallet not found');
-          }
-          break;
-        default:
-          throw new Error('Unsupported wallet type');
+      if (typeof window.ethereum !== 'undefined') {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        await updateWalletAddressAndFetchBalance('ethereum', address);
+      } else {
+        throw new Error('Ethereum wallet not found. Please install MetaMask.');
       }
-
-      const updatedAddresses = { ...walletAddresses, [type]: address };
-      setWalletAddresses(updatedAddresses);
-
-      const updatedUser = await updateWalletAddress(updatedAddresses);
-      if (updateUser) {
-        updateUser(updatedUser);
-      }
-
-      await fetchBalances();
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} wallet connected successfully!`);
     } catch (error) {
-      console.error('Error connecting wallet:', error);
-      toast.error(`Failed to connect ${type} wallet. ${error instanceof Error ? error.message : 'Please try again.'}`);
+      console.error('Error connecting Ethereum wallet:', error);
+      toast.error(`Failed to connect Ethereum wallet. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handleAddCustomToken = () => {
+  const connectBitcoinWallet = () => {
+    setShowQRScanner(true);
+  };
+
+  const updateWalletAddressAndFetchBalance = async (type: string, address: string) => {
+    const updatedAddresses = { ...walletAddresses, [type]: address };
+    setWalletAddresses(updatedAddresses);
+
+    const updatedUser = await updateWalletAddress(updatedAddresses);
+    if (updateUser) {
+      updateUser(updatedUser);
+    }
+
+    await fetchBalances();
+    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} wallet connected successfully!`);
+  };
+
+  const handleQRScan = (data: { text: string } | null) => {
+    if (data) {
+      setShowQRScanner(false);
+      updateWalletAddressAndFetchBalance('bitcoin', data.text);
+    }
+  };
+
+  const handleQRError = (error: any) => {
+    console.error(error);
+    toast.error('Failed to scan QR code. Please try again.');
+    setShowQRScanner(false);
+  };
+
+  const handleAddCustomToken = async () => {
     if (customTokenName && customTokenAddress) {
-      setCustomTokens([...customTokens, { name: customTokenName, address: customTokenAddress }]);
-      setCustomTokenName('');
-      setCustomTokenAddress('');
-      setShowAddToken(false);
-      toast.success('Custom token added successfully!');
+      try {
+        const isValid = await validateTokenAddress(customTokenAddress);
+        if (!isValid) {
+          toast.error('Invalid token address');
+          return;
+        }
+
+        setCustomTokens([...customTokens, { name: customTokenName, address: customTokenAddress }]);
+        setCustomTokenName('');
+        setCustomTokenAddress('');
+        setShowAddToken(false);
+        toast.success('Custom token added successfully!');
+        fetchBalances();
+      } catch (error) {
+        console.error('Error adding custom token:', error);
+        toast.error('Failed to add custom token');
+      }
     } else {
       toast.error('Please enter both token name and address.');
+    }
+  };
+
+  const renderBalance = (balance: WalletBalance) => {
+    if (typeof balance.balance === 'object' && balance.balance.amount && balance.balance.usdValue) {
+      return `${balance.balance.amount} (${balance.balance.usdValue})`;
+    } else if (typeof balance.balance === 'string') {
+      return balance.balance;
+    } else {
+      return 'N/A';
     }
   };
 
@@ -112,40 +141,66 @@ const WalletWidget: React.FC = () => {
       <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center">
         <FaWallet className="mr-2" /> Wallet
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {Object.entries(walletAddresses).map(([type, address]) => (
-          <div key={type} className="mb-4">
-            <p className="mb-2 flex items-center">
-              {type === 'ethereum' ? <FaEthereum className="mr-2" /> : <FaBitcoin className="mr-2" />}
-              {type.charAt(0).toUpperCase() + type.slice(1)} Address: 
-              <span className="ml-2 text-sm">{address.slice(0, 6)}...{address.slice(-4)}</span>
-            </p>
-          </div>
-        ))}
-      </div>
+      {Object.keys(walletAddresses).length === 0 ? (
+        <p className="text-center mb-4">No wallets connected. Please connect a wallet to view balances.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Object.entries(walletAddresses).map(([type, address]) => (
+            <div key={type} className="mb-4">
+              <p className="mb-2 flex items-center">
+                {type === 'ethereum' ? <FaEthereum className="mr-2" /> : <FaBitcoin className="mr-2" />}
+                {type.charAt(0).toUpperCase() + type.slice(1)} Address: 
+                <span className="ml-2 text-sm">{address.slice(0, 6)}...{address.slice(-4)}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {balances.map((balance) => (
-          <p key={balance.currency} className="mb-2">
-            {balance.currency} Balance: {balance.balance.amount} (${balance.balance.usdValue})
-          </p>
-        ))}
+        {balances.length > 0 ? (
+          balances.map((balance) => (
+            <p key={balance.currency} className="mb-2">
+              {balance.currency} Balance: {renderBalance(balance)}
+            </p>
+          ))
+        ) : (
+          <p className="text-center col-span-2">No balances available.</p>
+        )}
       </div>
       <div className="flex flex-wrap gap-2 mb-4">
         <button
-          onClick={() => connectWallet('ethereum')}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 flex-grow"
+          onClick={connectEthereumWallet}
+          className={`text-white p-2 rounded flex-grow ${
+            walletAddresses['ethereum'] ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+          }`}
           disabled={isConnecting}
         >
-          {isConnecting ? 'Connecting...' : 'Connect Ethereum'}
+          {isConnecting ? 'Connecting...' : walletAddresses['ethereum'] ? 'Ethereum Connected' : 'Connect Ethereum'}
         </button>
         <button
-          onClick={() => connectWallet('bitcoin')}
+          onClick={connectBitcoinWallet}
           className="bg-orange-600 text-white p-2 rounded hover:bg-orange-700 flex-grow"
           disabled={isConnecting}
         >
           {isConnecting ? 'Connecting...' : 'Connect Bitcoin'}
         </button>
       </div>
+      {showQRScanner && (
+        <div className="mb-4">
+          <QrScanner
+            delay={300}
+            onError={handleQRError}
+            onScan={handleQRScan}
+            style={{ width: '100%' }}
+          />
+          <button
+            onClick={() => setShowQRScanner(false)}
+            className="mt-2 bg-red-600 text-white p-2 rounded hover:bg-red-700"
+          >
+            Cancel QR Scan
+          </button>
+        </div>
+      )}
       <button 
         onClick={() => setShowAddToken(!showAddToken)} 
         className="bg-green-600 text-white p-2 rounded hover:bg-green-700 w-full mb-4"

@@ -1,11 +1,5 @@
 import api from './api';
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  walletAddresses?: {[key: string]: string};
-}
+import { User, CustomToken } from '../types';
 
 interface WalletBalance {
   currency: string;
@@ -43,16 +37,26 @@ export const getWalletBalance = async (): Promise<WalletBalance[]> => {
   }
 };
 
-export const testWalletEndpoint = async (): Promise<{ message: string }> => {
+export const validateTokenAddress = async (address: string): Promise<boolean> => {
   try {
-    const response = await api.get<{ success: boolean; message: string; data: { message: string } }>('/wallet/test');
+    const response = await api.post<{ success: boolean; data: { isValid: boolean } }>('/wallet/validate-address', { address });
+    return response.data.data.isValid;
+  } catch (error) {
+    console.error('Error validating token address:', error);
+    return false;
+  }
+};
+
+export const addCustomToken = async (token: CustomToken): Promise<CustomToken> => {
+  try {
+    const response = await api.post<{ success: boolean; data: CustomToken }>('/wallet/custom-token', token);
     if (response.data.success) {
       return response.data.data;
     } else {
-      throw new Error(response.data.message);
+      throw new Error('Failed to add custom token');
     }
   } catch (error) {
-    console.error('Error testing wallet endpoint:', error);
+    console.error('Error adding custom token:', error);
     throw error;
   }
 };

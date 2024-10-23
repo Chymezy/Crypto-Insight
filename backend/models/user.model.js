@@ -112,6 +112,10 @@ const userSchema = new mongoose.Schema({
         type: Map,
         of: String
     },
+    customTokens: [{
+        name: String,
+        address: String
+    }]
 }, {timestamps: true});
 
 export const User = mongoose.model("User", userSchema);

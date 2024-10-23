@@ -89,7 +89,6 @@ export interface Portfolio {
 // Update PortfolioData to be either a single Portfolio or an array of Portfolios
 export type PortfolioData = Portfolio | Portfolio[];
 
-// Add this interface if it's not already present
 export interface CustomToken {
   name: string;
   address: string;
