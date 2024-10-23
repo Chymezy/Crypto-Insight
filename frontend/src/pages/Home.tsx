@@ -17,7 +17,6 @@ import AIDemo from '../components/AIDemo'; // You'll need to create this compone
 import NewsWidget from '../components/NewsWidget'; // You'll need to create this component
 import tradersBackground from '../assets/entrepreneur-696976_1920.png'; // Import the new background image
 import educationImage from '../assets/crypto-education.jpg'; // Add this import at the top of the file
-import simulatorVideo from '../assets/simulator-background.mp4';
 import CryptoAnimation from '../components/CryptoAnimation';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
