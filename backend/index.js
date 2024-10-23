@@ -14,7 +14,9 @@ import portfolioRoutes from "./routes/portfolio.routes.js";
 import cryptoRoutes from './routes/crypto.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import aiRoutes from './routes/ai.routes.js';
-import socialRoutes from './routes/social.routes.js';  // Add this line
+import socialRoutes from './routes/social.routes.js';
+import swapRoutes from './routes/swap.routes.js';
+import walletRoutes from './routes/wallet.routes.js';
 
 dotenv.config();
 
@@ -56,7 +58,9 @@ app.use('/api/v1/crypto', cryptoRoutes);
 app.use('/api/v1/news', newsRoutes);
 app.use('/api/v1/ai', aiRoutes);
 console.log('AI routes mounted');
-app.use('/api/v1/social', socialRoutes);  // Add this line
+app.use('/api/v1/social', socialRoutes);
+app.use('/api/v1/swap', swapRoutes);
+app.use('/api/v1/wallet', walletRoutes);
 
 // Add this route before your catch-all route
 app.get('/auth/me', (req, res) => {
