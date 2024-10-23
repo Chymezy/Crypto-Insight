@@ -35,9 +35,12 @@ const WalletWidget: React.FC = () => {
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
 
   useEffect(() => {
-    if (user && user.walletAddresses) {
+    if (user && user.walletAddresses && Object.keys(user.walletAddresses).length > 0) {
       setWalletAddresses(user.walletAddresses);
       fetchBalances();
+    } else if (user && (!user.walletAddresses || Object.keys(user.walletAddresses).length === 0)) {
+      // Only show the toast once when there are no wallet addresses
+      toast.info('No wallet addresses found. Please connect a wallet.', { toastId: 'no-wallet-addresses' });
     }
   }, [user]);
 
@@ -45,9 +48,6 @@ const WalletWidget: React.FC = () => {
     try {
       const balancesData = await getWalletBalance();
       setBalances(balancesData);
-      if (balancesData.length === 0) {
-        toast.info('No wallet addresses found. Please connect a wallet.');
-      }
     } catch (error) {
       console.error('Error fetching balances:', error);
       toast.error('Failed to fetch wallet balances');
