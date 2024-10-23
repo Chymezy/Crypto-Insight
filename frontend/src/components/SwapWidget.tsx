@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaExchangeAlt } from 'react-icons/fa';
 import { getSupportedTokens, getSwapQuote, executeSwap } from '../services/swapApi';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 interface Token {
   id: string;
@@ -41,6 +42,7 @@ const SwapWidget: React.FC = () => {
     } catch (error) {
       console.error('Error fetching supported tokens:', error);
       setError('Failed to fetch supported tokens. Please try again later.');
+      toast.error('Failed to fetch supported tokens. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -49,6 +51,7 @@ const SwapWidget: React.FC = () => {
   const handleGetQuote = async () => {
     if (!user) {
       setError('You must be logged in to get a quote');
+      toast.error('You must be logged in to get a quote');
       return;
     }
     setLoading(true);
@@ -56,10 +59,11 @@ const SwapWidget: React.FC = () => {
     try {
       const quoteData = await getSwapQuote(fromToken, toToken, amount);
       console.log('Received quote data:', quoteData);
-      setQuote(quoteData); // Remove .data here
+      setQuote(quoteData);
     } catch (error) {
       console.error('Error fetching swap quote:', error);
       setError('Failed to get swap quote. Please try again.');
+      toast.error('Failed to get swap quote. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -68,6 +72,7 @@ const SwapWidget: React.FC = () => {
   const handleSwap = async () => {
     if (!user) {
       setError('You must be logged in to execute a swap');
+      toast.error('You must be logged in to execute a swap');
       return;
     }
     setLoading(true);
@@ -75,10 +80,12 @@ const SwapWidget: React.FC = () => {
     try {
       const swapResult = await executeSwap(fromToken, toToken, amount);
       console.log('Swap executed:', swapResult);
-      // Handle successful swap (e.g., show success message, update balances, etc.)
+      toast.success('Swap executed successfully!');
+      // Handle successful swap (e.g., update balances, etc.)
     } catch (error) {
       console.error('Error executing swap:', error);
       setError('Failed to execute swap. Please try again.');
+      toast.error('Failed to execute swap. Please try again.');
     } finally {
       setLoading(false);
     }
