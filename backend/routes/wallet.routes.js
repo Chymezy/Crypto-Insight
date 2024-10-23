@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateWalletAddress, testWalletEndpoint } from '../controllers/wallet.controller.js';
+import { updateWalletAddress, getWalletBalance, testWalletEndpoint } from '../controllers/wallet.controller.js';
 import { protectRoute } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 router.use(protectRoute);
 
 router.post('/update-address', updateWalletAddress);
-router.get('/test', testWalletEndpoint); // Add this line
+router.get('/balance', getWalletBalance);
+router.get('/test', testWalletEndpoint);
 
 export default router;

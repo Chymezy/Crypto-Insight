@@ -34,6 +34,11 @@ const SwapWidget: React.FC = () => {
     fetchSupportedTokens();
   }, []);
 
+  useEffect(() => {
+    // Clear quote when inputs change
+    setQuote(null);
+  }, [fromToken, toToken, amount]);
+
   const fetchSupportedTokens = async () => {
     try {
       setLoading(true);
@@ -58,7 +63,6 @@ const SwapWidget: React.FC = () => {
     setError(null);
     try {
       const quoteData = await getSwapQuote(fromToken, toToken, amount);
-      console.log('Received quote data:', quoteData);
       setQuote(quoteData);
     } catch (error) {
       console.error('Error fetching swap quote:', error);
@@ -81,7 +85,11 @@ const SwapWidget: React.FC = () => {
       const swapResult = await executeSwap(fromToken, toToken, amount);
       console.log('Swap executed:', swapResult);
       toast.success('Swap executed successfully!');
-      // Handle successful swap (e.g., update balances, etc.)
+      // Reset form after successful swap
+      setFromToken('');
+      setToToken('');
+      setAmount('');
+      setQuote(null);
     } catch (error) {
       console.error('Error executing swap:', error);
       setError('Failed to execute swap. Please try again.');
@@ -89,6 +97,10 @@ const SwapWidget: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 }).format(num);
   };
 
   if (loading && supportedTokens.length === 0) {
@@ -101,74 +113,68 @@ const SwapWidget: React.FC = () => {
         <FaExchangeAlt className="mr-2" /> Swap Tokens
       </h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          <div className="mb-4">
-            <label className="block mb-2">From Token</label>
-            <select
-              value={fromToken}
-              onChange={(e) => setFromToken(e.target.value)}
-              className="w-full p-2 bg-gray-700 rounded"
-            >
-              <option value="">Select Token</option>
-              {supportedTokens.map((token) => (
-                <option key={token.id} value={token.id}>
-                  {token.name} ({token.symbol})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">To Token</label>
-            <select
-              value={toToken}
-              onChange={(e) => setToToken(e.target.value)}
-              className="w-full p-2 bg-gray-700 rounded"
-            >
-              <option value="">Select Token</option>
-              {supportedTokens.map((token) => (
-                <option key={token.id} value={token.id}>
-                  {token.name} ({token.symbol})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Amount</label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full p-2 bg-gray-700 rounded"
-              placeholder="Enter amount"
-            />
-          </div>
-          <button
-            onClick={handleGetQuote}
-            disabled={loading || !fromToken || !toToken || !amount}
-            className="w-full bg-blue-600 text-white p-2 rounded mb-4 hover:bg-blue-700 disabled:bg-gray-600"
-          >
-            Get Quote
-          </button>
-          {quote && (
-            <div className="mb-4 bg-gray-700 p-4 rounded">
-              <h3 className="font-bold mb-2">Swap Quote</h3>
-              <p>From: {quote.fromAmount} {quote.fromToken}</p>
-              <p>To: {quote.toAmount?.toFixed(6)} {quote.toToken}</p>
-              <p>Exchange Rate: 1 {quote.fromToken} = {quote.exchangeRate?.toFixed(6)} {quote.toToken}</p>
-            </div>
-          )}
-          <button
-            onClick={handleSwap}
-            disabled={loading || !quote}
-            className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 disabled:bg-gray-600"
-          >
-            Execute Swap
-          </button>
-        </>
+      <div className="mb-4">
+        <label className="block mb-2">From Token</label>
+        <select
+          value={fromToken}
+          onChange={(e) => setFromToken(e.target.value)}
+          className="w-full p-2 bg-gray-700 rounded"
+        >
+          <option value="">Select Token</option>
+          {supportedTokens.map((token) => (
+            <option key={token.id} value={token.id}>
+              {token.name} ({token.symbol})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-4">
+        <label className="block mb-2">To Token</label>
+        <select
+          value={toToken}
+          onChange={(e) => setToToken(e.target.value)}
+          className="w-full p-2 bg-gray-700 rounded"
+        >
+          <option value="">Select Token</option>
+          {supportedTokens.map((token) => (
+            <option key={token.id} value={token.id}>
+              {token.name} ({token.symbol})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-4">
+        <label className="block mb-2">Amount</label>
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full p-2 bg-gray-700 rounded"
+          placeholder="Enter amount"
+        />
+      </div>
+      <button
+        onClick={handleGetQuote}
+        disabled={loading || !fromToken || !toToken || !amount}
+        className="w-full bg-blue-600 text-white p-2 rounded mb-4 hover:bg-blue-700 disabled:bg-gray-600"
+      >
+        {loading ? 'Loading...' : 'Get Quote'}
+      </button>
+      {quote && (
+        <div className="mb-4 bg-gray-700 p-4 rounded">
+          <h3 className="font-bold mb-2">Swap Quote</h3>
+          <p>From: {formatNumber(quote.fromAmount)} {quote.fromToken}</p>
+          <p>To: {formatNumber(quote.toAmount)} {quote.toToken}</p>
+          <p>Exchange Rate: 1 {quote.fromToken} = {formatNumber(quote.exchangeRate)} {quote.toToken}</p>
+        </div>
       )}
+      <button
+        onClick={handleSwap}
+        disabled={loading || !quote}
+        className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 disabled:bg-gray-600"
+      >
+        {loading ? 'Processing...' : 'Execute Swap'}
+      </button>
     </div>
   );
 };

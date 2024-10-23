@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import PortfolioOverview from './PortfolioOverview';
 import NewsSummary from './NewsSummary'; // Make sure this component exists in a separate file
 import SwapWidget from './SwapWidget';
-import { FaChartPie, FaChartLine, FaNewspaper, FaUsers, FaBell, FaRobot, FaExchangeAlt, FaHistory } from 'react-icons/fa';
+import WalletWidget from './WalletWidget'; // Add this import
+import { FaChartPie, FaChartLine, FaNewspaper, FaUsers, FaBell, FaRobot, FaExchangeAlt, FaHistory, FaWallet } from 'react-icons/fa';
 
 // Placeholder components
 const MarketOverview = () => <div>Market Overview</div>;
@@ -30,6 +31,8 @@ const Dashboard: React.FC = () => {
         return <AIInsights />;
       case 'swap':
         return <SwapWidget />;
+      case 'wallet':
+        return <WalletWidget />;
       case 'transactions':
         return <Transactions />;
       default:
@@ -45,6 +48,7 @@ const Dashboard: React.FC = () => {
     { name: 'Alerts', icon: FaBell },
     { name: 'AI Insights', icon: FaRobot },
     { name: 'Swap', icon: FaExchangeAlt },
+    { name: 'Wallet', icon: FaWallet },
     { name: 'Transactions', icon: FaHistory },
   ];
 

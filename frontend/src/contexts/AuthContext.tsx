@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { login, logout, signup, getCurrentUser, forgotPassword, resetPassword, refreshToken } from '../services/api';
 import { User } from '../types';
 
@@ -11,11 +11,13 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (email: string, token: string, newPassword: string) => Promise<void>;
+  loading: boolean;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,6 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await resetPassword(email, token, newPassword);
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   return (
     <AuthContext.Provider 
       value={{
@@ -81,6 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup: signupHandler,
         forgotPassword: forgotPasswordHandler,
         resetPassword: resetPasswordHandler,
+        loading,
+        updateUser,
       }}
     >
       {children}

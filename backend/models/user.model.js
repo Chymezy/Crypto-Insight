@@ -108,8 +108,10 @@ const userSchema = new mongoose.Schema({
         default: 'free'
     },
     lastSyncDate: Date,
-    
+    walletAddresses: {
+        type: Map,
+        of: String
+    },
 }, {timestamps: true});
 
 export const User = mongoose.model("User", userSchema);
-
