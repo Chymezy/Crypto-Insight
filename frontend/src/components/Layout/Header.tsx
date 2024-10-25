@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import logoImage from '../../assets/mylogo.svg'; // Import the logo
+import { FaCog, FaChevronDown, FaUser } from 'react-icons/fa';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -15,17 +17,12 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  const publicMenuItems = [
+  const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Markets', path: '/markets' },
-  ];
-
-  const privateMenuItems = [
     { name: 'Portfolio', path: '/portfolio' },
     { name: 'News', path: '/news' },
   ];
-
-  const menuItems = user ? [...publicMenuItems, ...privateMenuItems] : publicMenuItems;
 
   return (
     <header className="bg-gray-900 text-white">
@@ -46,22 +43,58 @@ const Header: React.FC = () => {
                 {item.name}
               </Link>
             ))}
-            {user ? (
-              <button
-                onClick={handleLogout}
-                className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Login
-              </Link>
-            )}
           </nav>
+
+          {user && (
+            <div className="flex items-center space-x-4">
+              <button className="text-gray-300 hover:text-white">
+                <FaCog size={20} />
+              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="flex items-center space-x-2 text-gray-300 hover:text-white"
+                >
+                  {user.profilePicture ? (
+                    <img 
+                      src={user.profilePicture} 
+                      alt="Profile" 
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <FaUser size={20} className="w-8 h-8 p-1 rounded-full bg-gray-700" />
+                  )}
+                  <FaChevronDown size={12} />
+                </button>
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1">
+                    <Link 
+                      to="/profile" 
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!user && (
+            <Link
+              to="/login"
+              className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition duration-300"
+            >
+              Login
+            </Link>
+          )}
 
           {/* Mobile menu button */}
           <button

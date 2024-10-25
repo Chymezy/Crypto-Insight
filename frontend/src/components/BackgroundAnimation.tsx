@@ -7,7 +7,7 @@ const BackgroundAnimation: React.FC = () => {
       {[...Array(50)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-white rounded-full opacity-50"
+          className="absolute w-1 h-1 bg-blue-500 rounded-full opacity-50"
           initial={{ 
             x: Math.random() * window.innerWidth, 
             y: Math.random() * window.innerHeight,
