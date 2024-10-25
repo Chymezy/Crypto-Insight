@@ -11,6 +11,7 @@ import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer'; // Add this import
 import BackgroundAnimation from './components/BackgroundAnimation';
 import Checkout from './pages/Checkout';
+import { NavigationProvider } from './contexts/NavigationContext';
 
 // Lazy imports for code splitting 
 const Home = lazy(() => import('./pages/Home')); // Lazy import for Home page 
@@ -29,55 +30,57 @@ const ProfilePage = lazy(() => import('./components/ProfilePage')); // Lazy impo
 // Main App component
 const App: React.FC = () => {
   return (
-    <ErrorBoundary>
-      <Router>
-        <AuthProvider>
-          <div className="flex flex-col min-h-screen bg-gray-900 text-white relative">
-            <BackgroundAnimation />
-            <Header />
-            <main className="flex-grow">
-              <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                  <Route path="/" element={<Home />} /> {/* Home page route */}
-                  <Route path="/login" element={<Login />} /> {/* Login page route */}
-                  <Route path="/register" element={<Register />} /> {/* Register page route */}
-                  <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
-                  <Route path="/news" element={<News />} /> {/* Add this line */}
-                  <Route path="/market" element={<Market />} /> {/* Add this line */}
-                  
-                  {/* Protected routes */}
-                  <Route 
-                    path="/portfolio" 
-                    element={
-                      <ProtectedRoute>
-                        <Portfolio />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* ... other routes */}
-                  <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
-                  <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                  <Route path="/checkout" element={<Checkout />} />
-                </Routes>
-              </Suspense>
-            </main>
-            <Footer /> {/* Add this line */}
-            <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
-          </div>
-        </AuthProvider>
-      </Router>
-    </ErrorBoundary>
+    <NavigationProvider>
+      <ErrorBoundary>
+        <Router>
+          <AuthProvider>
+            <div className="flex flex-col min-h-screen bg-gray-900 text-white relative">
+              <BackgroundAnimation />
+              <Header />
+              <main className="flex-grow">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                    <Route path="/" element={<Home />} /> {/* Home page route */}
+                    <Route path="/login" element={<Login />} /> {/* Login page route */}
+                    <Route path="/register" element={<Register />} /> {/* Register page route */}
+                    <Route path="/verify-email" element={<VerifyEmail />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/pricing" element={<Pricing />} /> {/* Pricing page route */}
+                    <Route path="/news" element={<News />} /> {/* Add this line */}
+                    <Route path="/market" element={<Market />} /> {/* Add this line */}
+                    
+                    {/* Protected routes */}
+                    <Route 
+                      path="/portfolio" 
+                      element={
+                        <ProtectedRoute>
+                          <Portfolio />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* ... other routes */}
+                    <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
+                    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                    <Route path="/checkout" element={<Checkout />} />
+                  </Routes>
+                </Suspense>
+              </main>
+              <Footer /> {/* Add this line */}
+              <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
+            </div>
+          </AuthProvider>
+        </Router>
+      </ErrorBoundary>
+    </NavigationProvider>
   );
 };
 
