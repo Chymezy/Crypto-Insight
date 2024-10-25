@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import PortfolioOverview from './PortfolioOverview';
-import NewsSummary from './NewsSummary'; // Make sure this component exists in a separate file
+import NewsSummary from './NewsSummary';
 import SwapWidget from './SwapWidget';
-import WalletWidget from './WalletWidget'; // Add this import
-import { FaChartPie, FaChartLine, FaNewspaper, FaUsers, FaBell, FaRobot, FaExchangeAlt, FaHistory, FaWallet } from 'react-icons/fa';
+import WalletWidget from './WalletWidget';
+import { FaChartPie, FaChartLine, FaNewspaper, FaUsers, FaBell, FaRobot, FaExchangeAlt, FaHistory, FaWallet, FaBars } from 'react-icons/fa';
 
 // Placeholder components
 const MarketOverview = () => <div>Market Overview</div>;
@@ -14,6 +14,7 @@ const Transactions = () => <div>Transactions</div>;
 
 const Dashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState('portfolio');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderActiveSection = () => {
     switch (activeSection) {
@@ -53,15 +54,35 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row">
-      <nav className="w-full md:w-64 bg-gray-800 p-4 mb-4 md:mb-0">
-        <ul className="flex md:flex-col overflow-x-auto md:overflow-x-visible">
+    <div className="flex flex-col md:flex-row min-h-screen">
+      {/* Mobile Header */}
+      <div className="md:hidden flex justify-between items-center p-4 bg-gray-800">
+        <h1 className="text-xl font-bold text-white">Dashboard</h1>
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white">
+          <FaBars size={24} />
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <nav className={`
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+        transition-transform duration-300 ease-in-out
+        fixed md:static top-0 left-0 h-full
+        w-64 bg-gray-800 p-4 overflow-y-auto z-50 md:z-auto
+      `}>
+        <ul className="space-y-2">
           {navItems.map((item) => (
-            <li key={item.name} className="mb-2 mr-2 md:mr-0">
+            <li key={item.name}>
               <button
-                onClick={() => setActiveSection(item.name.toLowerCase().replace(' ', ''))}
-                className={`w-full text-left p-2 rounded whitespace-nowrap flex items-center ${
-                  activeSection === item.name.toLowerCase().replace(' ', '') ? 'bg-blue-600' : 'hover:bg-gray-700'
+                onClick={() => {
+                  setActiveSection(item.name.toLowerCase().replace(' ', ''));
+                  setIsSidebarOpen(false);
+                }}
+                className={`w-full text-left p-2 rounded flex items-center text-white ${
+                  activeSection === item.name.toLowerCase().replace(' ', '') 
+                    ? 'bg-blue-600' 
+                    : 'hover:bg-gray-700'
                 }`}
               >
                 <item.icon className="mr-2" />
@@ -71,10 +92,19 @@ const Dashboard: React.FC = () => {
           ))}
         </ul>
       </nav>
-      <main className="flex-1 p-4">
-        <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         {renderActiveSection()}
       </main>
+
+      {/* Overlay for mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
     </div>
   );
 };

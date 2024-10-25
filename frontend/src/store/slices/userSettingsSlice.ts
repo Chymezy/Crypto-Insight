@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { updateSettings, updateProfilePicture } from '../../services/userApi';
 
 export interface UserSettings {
@@ -42,7 +42,17 @@ export const updateUserProfilePicture = createAsyncThunk(
 const userSettingsSlice = createSlice({
   name: 'userSettings',
   initialState,
-  reducers: {},
+  reducers: {
+    setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
+      state.theme = action.payload;
+    },
+    setLanguage: (state, action: PayloadAction<string>) => {
+      state.language = action.payload;
+    },
+    setPreferredCurrency: (state, action: PayloadAction<string>) => {
+      state.preferredCurrency = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(updateUserSettings.fulfilled, (state, action) => {
@@ -54,4 +64,6 @@ const userSettingsSlice = createSlice({
   },
 });
 
-export default userSettingsSlice.reducer;
+export const { setTheme, setLanguage, setPreferredCurrency } = userSettingsSlice.actions;
+
+export const userSettingsReducer = userSettingsSlice.reducer;
