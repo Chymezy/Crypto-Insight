@@ -32,3 +32,7 @@ export const updateUserProfile = async (userData: Partial<User>): Promise<User> 
     throw error;
   }
 };
+
+export const updateWalletAddress = async (type: string, address: string): Promise<void> => {
+  await api.post('/wallet/update-address', { type, address });
+};

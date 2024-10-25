@@ -1,3 +1,5 @@
+export * from './user.types';
+
 export interface Asset {
   id: string;
   name: string;

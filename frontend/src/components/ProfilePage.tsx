@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FaUser, FaLock, FaShieldAlt, FaWallet, FaChartLine, FaCamera } from 'react-icons/fa';
+import { FaUser, FaLock, FaShieldAlt, FaWallet, FaChartLine, FaCamera, FaEthereum, FaBitcoin, FaPlus, FaEnvelope, FaCalendar, FaGlobe, FaExclamationCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { updateProfilePicture, changePassword } from '../services/userApi';
+import { updateProfilePicture, changePassword, updateWalletAddress } from '../services/userApi';
 import { User } from '../types/user.types';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('personal');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [walletAddresses, setWalletAddresses] = useState<{[key: string]: string}>({});
+
+  useEffect(() => {
+    if (user?.profilePicture) {
+      setProfilePicture(user.profilePicture);
+    }
+    if (user?.walletAddresses) {
+      setWalletAddresses(user.walletAddresses);
+    }
+  }, [user]);
 
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,39 +63,148 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleWalletAddressUpdate = async (type: string, address: string) => {
+    try {
+      await updateWalletAddress(type, address);
+      setWalletAddresses({ ...walletAddresses, [type]: address });
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} wallet address updated successfully`);
+    } catch (error) {
+      toast.error(`Failed to update ${type} wallet address`);
+    }
+  };
+
+  const renderPersonalData = () => (
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-blue-400">Personal Data</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="mb-4 col-span-2 flex items-center justify-center">
+          <div className="relative">
+            <img 
+              src={profilePicture || '/default-avatar.png'} 
+              alt="Profile" 
+              className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
+            />
+            <label htmlFor="profile-picture-input" className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors">
+              <FaCamera className="text-white" />
+              <input 
+                id="profile-picture-input"
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleProfilePictureChange}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-300">Full Name</label>
+          <input type="text" value={user?.name} className="w-full p-2 bg-gray-700 rounded text-white" readOnly />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-300">Email</label>
+          <div className="flex items-center">
+            <FaEnvelope className="text-gray-500 mr-2" />
+            <input type="email" value={user?.email} className="w-full p-2 bg-gray-700 rounded text-white" readOnly />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-300">Date Joined</label>
+          <div className="flex items-center">
+            <FaCalendar className="text-gray-500 mr-2" />
+            <input 
+              type="text" 
+              value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'} 
+              className="w-full p-2 bg-gray-700 rounded text-white" 
+              readOnly 
+            />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-300">Preferred Currency</label>
+          <div className="flex items-center">
+            <FaGlobe className="text-gray-500 mr-2" />
+            <input 
+              type="text" 
+              value={user?.preferredCurrency || 'USD'} 
+              className="w-full p-2 bg-gray-700 rounded text-white" 
+              readOnly 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderWalletAddresses = () => (
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-blue-400">Wallet Addresses</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {['ethereum', 'bitcoin'].map((type) => (
+          <div key={type} className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-300">
+              {type.charAt(0).toUpperCase() + type.slice(1)} Address
+            </label>
+            <div className="flex items-center">
+              {type === 'ethereum' ? <FaEthereum className="text-blue-400 mr-2" /> : <FaBitcoin className="text-orange-400 mr-2" />}
+              <input 
+                type="text" 
+                value={walletAddresses[type] || ''}
+                onChange={(e) => setWalletAddresses({ ...walletAddresses, [type]: e.target.value })}
+                className="flex-grow p-2 bg-gray-700 rounded-l text-white"
+                placeholder={`Enter your ${type} address`}
+              />
+              <button 
+                onClick={() => handleWalletAddressUpdate(type, walletAddresses[type] || '')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-r hover:bg-blue-700 transition-colors"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors flex items-center">
+        <FaPlus className="mr-2" /> Add Custom Token
+      </button>
+    </div>
+  );
+
+  const renderAccountLimits = () => (
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-blue-400">Account Limits</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { name: 'Daily Withdrawal', value: '$10,000', icon: FaWallet },
+          { name: 'Monthly Trading Volume', value: '$500,000', icon: FaChartLine },
+          { name: 'Max Single Transaction', value: '$50,000', icon: FaExclamationCircle },
+          { name: 'Leverage Limit', value: '10x', icon: FaChartLine },
+        ].map((limit) => (
+          <div key={limit.name} className="bg-gray-700 p-4 rounded-lg">
+            <div className="flex items-center mb-2">
+              <limit.icon className="text-blue-400 mr-2" />
+              <h3 className="text-lg font-semibold">{limit.name}</h3>
+            </div>
+            <p className="text-2xl font-bold text-green-400">{limit.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 bg-blue-900 p-4 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Upgrade Your Limits</h3>
+        <p className="text-gray-300 mb-4">Increase your trading power by upgrading your account.</p>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+          Upgrade Now
+        </button>
+      </div>
+      <p className="mt-4 text-sm text-gray-400">
+        Note: These limits are based on your account level. To increase your limits, please contact support or upgrade your account.
+      </p>
+    </div>
+  );
+
   const renderSection = () => {
     switch (activeSection) {
       case 'personal':
-        return (
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6 text-blue-400">Personal Data</h2>
-            <div className="mb-6 relative w-40 h-40 mx-auto">
-              <img 
-                src={user?.profilePicture || '/default-avatar.png'} 
-                alt="Profile" 
-                className="w-full h-full rounded-full object-cover border-4 border-blue-500"
-              />
-              <label htmlFor="profile-picture-input" className="absolute bottom-2 right-2 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors">
-                <FaCamera className="text-white" />
-                <input 
-                  id="profile-picture-input"
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handleProfilePictureChange}
-                />
-              </label>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-300">Username</label>
-              <input type="text" value={user?.name} className="w-full p-2 bg-gray-700 rounded text-white" readOnly />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-300">Email</label>
-              <input type="email" value={user?.email} className="w-full p-2 bg-gray-700 rounded text-white" readOnly />
-            </div>
-          </div>
-        );
+        return renderPersonalData();
       case 'security':
         return (
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -131,19 +251,9 @@ const ProfilePage: React.FC = () => {
           </div>
         );
       case 'wallet':
-        return (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Wallet Addresses</h2>
-            {/* Add wallet address management here */}
-          </div>
-        );
+        return renderWalletAddresses();
       case 'limits':
-        return (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Account Limits</h2>
-            {/* Add account limits information here */}
-          </div>
-        );
+        return renderAccountLimits();
       default:
         return null;
     }
