@@ -2,14 +2,21 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { updateUserSettings } from '../../store/slices/userSettingsSlice';
 import logoImage from '../../assets/mylogo.svg'; // Import the logo
-import { FaCog, FaChevronDown, FaUser } from 'react-icons/fa';
+import { FaCog, FaChevronDown, FaUser, FaMoon, FaSun, FaGlobe, FaDollarSign } from 'react-icons/fa';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const userSettings = useSelector((state: RootState) => state.userSettings);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -24,8 +31,23 @@ const Header: React.FC = () => {
     { name: 'News', path: '/news' },
   ];
 
+  const handleThemeChange = (theme: 'light' | 'dark') => {
+    dispatch(updateUserSettings({ theme }));
+    setIsSettingsDropdownOpen(false);
+  };
+
+  const handleLanguageChange = (language: string) => {
+    dispatch(updateUserSettings({ language }));
+    setIsSettingsDropdownOpen(false);
+  };
+
+  const handleCurrencyChange = (preferredCurrency: string) => {
+    dispatch(updateUserSettings({ preferredCurrency }));
+    setIsSettingsDropdownOpen(false);
+  };
+
   return (
-    <header className="bg-gray-900 text-white">
+    <header className={`bg-${userSettings.theme === 'dark' ? 'gray-900' : 'white'} text-${userSettings.theme === 'dark' ? 'white' : 'gray-900'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
@@ -47,9 +69,33 @@ const Header: React.FC = () => {
 
           {user && (
             <div className="flex items-center space-x-4">
-              <button className="text-gray-300 hover:text-white">
-                <FaCog size={20} />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsSettingsDropdownOpen(!isSettingsDropdownOpen)}
+                  className="text-gray-300 hover:text-white"
+                >
+                  <FaCog size={20} />
+                </button>
+                {isSettingsDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1">
+                    <div className="px-4 py-2 text-sm text-gray-400">Theme</div>
+                    <button onClick={() => handleThemeChange('light')} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <FaSun className="inline mr-2" /> Light
+                    </button>
+                    <button onClick={() => handleThemeChange('dark')} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <FaMoon className="inline mr-2" /> Dark
+                    </button>
+                    <div className="px-4 py-2 text-sm text-gray-400">Language</div>
+                    <button onClick={() => handleLanguageChange('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <FaGlobe className="inline mr-2" /> English
+                    </button>
+                    <div className="px-4 py-2 text-sm text-gray-400">Currency</div>
+                    <button onClick={() => handleCurrencyChange('USD')} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <FaDollarSign className="inline mr-2" /> USD
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="relative">
                 <button 
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -135,14 +181,25 @@ const Header: React.FC = () => {
                   </li>
                 ))}
                 {user ? (
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                    >
-                      Logout
-                    </button>
-                  </li>
+                  <>
+                    <li>
+                      <Link
+                        to="/profile"
+                        className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </>
                 ) : (
                   <li>
                     <Link

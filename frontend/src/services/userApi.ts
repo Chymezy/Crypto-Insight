@@ -1,16 +1,12 @@
 import api from './api';
 import { User } from '../types/user.types';
+import { UserSettings } from '../store/slices/userSettingsSlice';
 
 export const updateProfilePicture = async (formData: FormData): Promise<{ success: boolean; profilePicture: string }> => {
-  try {
-    const response = await api.put('/users/profile-picture', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating profile picture:', error);
-    throw error;
-  }
+  const response = await api.put('/users/profile-picture', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
 };
 
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
@@ -39,4 +35,8 @@ export const updateWalletAddress = async (type: string, address: string): Promis
 
 export const upgradePlan = async (planName: string, isAnnual: boolean): Promise<void> => {
   await api.post('/users/upgrade-plan', { planName, isAnnual });
+};
+
+export const updateSettings = async (settings: Partial<UserSettings>) => {
+  return api.put('/users/settings', settings);
 };
