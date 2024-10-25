@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRou
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer'; // Add this import
 import BackgroundAnimation from './components/BackgroundAnimation';
+import Checkout from './pages/Checkout';
 
 // Lazy imports for code splitting 
 const Home = lazy(() => import('./pages/Home')); // Lazy import for Home page 
@@ -67,6 +68,7 @@ const App: React.FC = () => {
                   {/* ... other routes */}
                   <Route path="/asset/:assetId" element={<AssetDetails />} /> {/* Asset details page route */}
                   <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                  <Route path="/checkout" element={<Checkout />} />
                 </Routes>
               </Suspense>
             </main>

@@ -394,3 +394,22 @@ export const getWatchlist = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching watchlist', error: error.message });
     }
 };
+
+export const upgradePlan = async (req, res) => {
+  try {
+    const { planName, isAnnual } = req.body;
+    const userId = req.user._id;
+
+    // Implement your plan upgrade logic here
+    // This might involve updating the user's plan in the database,
+    // initiating a payment process, etc.
+
+    // For now, let's just update the user's plan in the database
+    await User.findByIdAndUpdate(userId, { plan: planName, isAnnualBilling: isAnnual });
+
+    res.status(200).json({ message: 'Plan upgraded successfully' });
+  } catch (error) {
+    console.error('Error upgrading plan:', error);
+    res.status(500).json({ message: 'Failed to upgrade plan' });
+  }
+};

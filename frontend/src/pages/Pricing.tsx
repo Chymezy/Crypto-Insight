@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { FaCheck, FaTimes, FaQuestionCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const PricingTier: React.FC<{
   name: string;
   price: { monthly: string; annual: string };
   features: string[];
   recommended?: boolean;
-}> = ({ name, price, features, recommended }) => {
-  const [isAnnual, setIsAnnual] = useState(false);
-
+  isAnnual: boolean;
+  onChoosePlan: () => void;
+}> = ({ name, price, features, recommended, isAnnual, onChoosePlan }) => {
   return (
     <div className={`bg-gray-800 rounded-lg p-6 flex flex-col ${recommended ? 'border-2 border-blue-500' : ''}`}>
       {recommended && (
@@ -27,7 +29,10 @@ const PricingTier: React.FC<{
           </li>
         ))}
       </ul>
-      <button className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors">
+      <button 
+        className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
+        onClick={onChoosePlan}
+      >
         Choose Plan
       </button>
     </div>
@@ -91,6 +96,8 @@ const FAQ: React.FC = () => {
 
 const Pricing: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const plans = [
     {
@@ -110,6 +117,19 @@ const Pricing: React.FC = () => {
       features: ['All Pro features', 'API access', 'Custom integrations', 'Dedicated account manager'],
     },
   ];
+
+  const handleChoosePlan = (plan: typeof plans[0]) => {
+    if (!user) {
+      navigate('/login', { state: { from: '/pricing', selectedPlan: plan } });
+    } else {
+      navigate('/checkout', { 
+        state: { 
+          selectedPlan: plan, 
+          isAnnual 
+        }
+      });
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 bg-gray-900 min-h-screen">
@@ -132,7 +152,12 @@ const Pricing: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {plans.map((plan, index) => (
-          <PricingTier key={index} {...plan} />
+          <PricingTier 
+            key={index} 
+            {...plan} 
+            isAnnual={isAnnual}
+            onChoosePlan={() => handleChoosePlan(plan)}
+          />
         ))}
       </div>
 

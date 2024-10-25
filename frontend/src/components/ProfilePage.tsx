@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FaUser, FaLock, FaShieldAlt, FaWallet, FaChartLine, FaCamera, FaEthereum, FaBitcoin, FaPlus, FaEnvelope, FaCalendar, FaGlobe, FaExclamationCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -6,6 +7,7 @@ import { updateProfilePicture, changePassword, updateWalletAddress } from '../se
 import { User } from '../types/user.types';
 
 const ProfilePage: React.FC = () => {
+  const navigate = useNavigate();
   const { user, updateUser, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('personal');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -191,7 +193,10 @@ const ProfilePage: React.FC = () => {
       <div className="mt-6 bg-blue-900 p-4 rounded-lg">
         <h3 className="text-xl font-semibold mb-2">Upgrade Your Limits</h3>
         <p className="text-gray-300 mb-4">Increase your trading power by upgrading your account.</p>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+        <button 
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          onClick={() => navigate('/pricing')}
+        >
           Upgrade Now
         </button>
       </div>

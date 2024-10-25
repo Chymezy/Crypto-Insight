@@ -13,7 +13,8 @@ import {
     getProfile,
     getTransactions,
     addTransaction,
-    updateProfilePicture
+    updateProfilePicture,
+    upgradePlan
 } from '../controllers/user.controller.js';
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { checkCurrenciesInitialized } from "../middleware/currencyCheck.middleware.js";
@@ -49,5 +50,7 @@ router.delete('/watchlist/:coinId', protectRoute, removeFromWatchlist);
 // Transaction routes
 router.get('/transactions', protectRoute, getTransactions);
 router.post('/transactions', protectRoute, addTransaction);
+
+router.post('/upgrade-plan', protectRoute, upgradePlan);
 
 export default router;

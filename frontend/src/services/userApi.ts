@@ -36,3 +36,7 @@ export const updateUserProfile = async (userData: Partial<User>): Promise<User> 
 export const updateWalletAddress = async (type: string, address: string): Promise<void> => {
   await api.post('/wallet/update-address', { type, address });
 };
+
+export const upgradePlan = async (planName: string, isAnnual: boolean): Promise<void> => {
+  await api.post('/users/upgrade-plan', { planName, isAnnual });
+};
