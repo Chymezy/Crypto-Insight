@@ -2,18 +2,74 @@ import bcrypt from 'bcryptjs';
 import { User } from "../models/user.model.js";
 import { redisClient } from "../config/redis.js";
 import { isPasswordStrong } from "../utils/auth.lib.js";
+import cloudinary from "../utils/cloudinary.js";
+import fs from 'fs';
+
+// Update user profile picture
+export const updateProfilePicture = async (req, res) => {
+    console.log('updateProfilePicture function called');
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+
+        const file = req.files[0]; // Get the first file
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Upload image to Cloudinary
+        const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'profile_pictures',
+            width: 300,
+            crop: "scale"
+        });
+
+        // Update user profile with new image URL
+        user.profilePicture = result.secure_url;
+        await user.save();
+
+        // Update cache
+        await redisClient.set(`user:${user._id}`, JSON.stringify(user), 'EX', 3600);
+
+        // Delete the temporary file
+        fs.unlinkSync(file.path);
+
+        res.json({
+            success: true,
+            message: 'Profile picture updated successfully',
+            profilePicture: user.profilePicture
+        });
+    } catch (error) {
+        console.error('Error in updateProfilePicture:', error);
+        res.status(500).json({ success: false, message: 'Error updating profile picture', error: error.message });
+    }
+};
 
 // Update user profile
 export const updateProfile = async (req, res) => {
     try {
-        const { name, email, profilePicture, preferredCurrency, language, notificationPreferences } = req.body;
+        const { name, email, preferredCurrency, language, notificationPreferences } = req.body;
         const user = await User.findById(req.user._id);
 
         if (user) {
             user.name = name || user.name;
             user.email = email || user.email;
             
-            if (profilePicture) user.profilePicture = profilePicture;
+            if (req.file) {
+                // Upload new profile picture if provided
+                const result = await cloudinary.uploader.upload(req.file.path, {
+                    folder: 'profile_pictures',
+                    width: 300,
+                    crop: "scale"
+                });
+                user.profilePicture = result.secure_url;
+            }
+
             if (language) user.language = language;
             if (notificationPreferences) user.notificationPreferences = notificationPreferences;
 
@@ -28,7 +84,7 @@ export const updateProfile = async (req, res) => {
             const updatedUser = await user.save();
 
             // Update cache
-            await redisClient.set(`user:${updatedUser._id}`, JSON.stringify(updatedUser), 'EX', 3600); // Cache for 1 hour
+            await redisClient.set(`user:${updatedUser._id}`, JSON.stringify(updatedUser), 'EX', 3600);
 
             res.json({
                 _id: updatedUser._id,

@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { 
     updateProfile, 
     changePassword, 
@@ -11,18 +12,23 @@ import {
     getWatchlist,
     getProfile,
     getTransactions,
-    addTransaction
+    addTransaction,
+    updateProfilePicture
 } from '../controllers/user.controller.js';
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { checkCurrenciesInitialized } from "../middleware/currencyCheck.middleware.js";
 
 const router = express.Router();
 
+// Configure multer for file uploads
+const upload = multer({ dest: 'uploads/' });
+
 router.use(checkCurrenciesInitialized);
 
 // Profile routes
 router.get('/profile', protectRoute, getProfile);
-router.put('/profile', protectRoute, updateProfile);
+router.put('/profile', protectRoute, upload.single('profilePicture'), updateProfile);
+router.put('/profile-picture', protectRoute, upload.any(), updateProfilePicture);
 router.put('/change-password', protectRoute, changePassword);
 
 // Settings route
