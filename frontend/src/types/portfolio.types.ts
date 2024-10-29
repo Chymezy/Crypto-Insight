@@ -31,3 +31,6 @@ export interface PortfolioPerformance {
   changePercentage: number;
   assetPerformances: AssetPerformance[];
 }
+
+// Add this line to export the Asset type
+export type Asset = PortfolioAsset;

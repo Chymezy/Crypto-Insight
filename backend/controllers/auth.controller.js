@@ -139,8 +139,8 @@ export const login = async (req, res) => {
     const email = rawEmail.trim(); // Trim the email
 
     try {
-        console.log("Login attempt started");
-        console.log("Login attempt for email:", email);
+        console.log("Login attempt started"); //debugging 
+        console.log("Login attempt for email:", email); // debugging
 
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "Email and password are required" });

@@ -1,33 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { fetchPortfolios, fetchPerformance } from '../store/slices/portfolioSlice';
+import { fetchPortfolios, fetchPerformance, setSelectedPortfolio, clearError } from '../store/slices/portfolioSlice';
 import { LineChart, Line, PieChart, Pie, ResponsiveContainer, Tooltip, Cell, XAxis, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaChartLine, FaChartPie, FaList, FaSpinner } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { PortfolioPerformance } from '../types/portfolio.types';
 
 const PortfolioOverview: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { portfolios, performanceData, loading, error } = useSelector((state: RootState) => state.portfolio);
+  const { portfolios, selectedPortfolio, performanceData, loading, error } = useSelector((state: RootState) => state.portfolio);
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     dispatch(fetchPortfolios());
-    dispatch(fetchPerformance({ portfolioId: 'default', timeframe: selectedTimeframe }));
-  }, [dispatch, selectedTimeframe]);
+  }, [dispatch]);
 
-  const totalValue = portfolios.reduce((sum, portfolio) => sum + portfolio.totalValue, 0);
+  useEffect(() => {
+    if (selectedPortfolio) {
+      dispatch(fetchPerformance({ portfolioId: selectedPortfolio.id, timeframe: selectedTimeframe }));
+    }
+  }, [dispatch, selectedPortfolio, selectedTimeframe]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
+  const totalValue = Array.isArray(portfolios) ? portfolios.reduce((sum, portfolio) => sum + portfolio.totalValue, 0) : 0;
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   const timeframes = ['24h', '7d', '30d', '90d', '1y'];
 
   if (loading) {
-    return <SkeletonLoader />;
-  }
-
-  if (error) {
-    return <ErrorDisplay message={error} />;
+    return <div className="flex justify-center items-center h-64"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>;
   }
 
   return (
@@ -77,7 +87,7 @@ const PortfolioOverview: React.FC = () => {
       <div className="mt-4">
         <h3 className="text-lg font-semibold mb-2 text-white">Portfolios</h3>
         <div className="space-y-2">
-          {portfolios.map((portfolio) => (
+          {Array.isArray(portfolios) && portfolios.map((portfolio) => (
             <motion.div 
               key={portfolio.id}
               className="bg-gray-700 p-2 rounded flex justify-between items-center"
@@ -94,7 +104,7 @@ const PortfolioOverview: React.FC = () => {
   );
 };
 
-const OverviewTab: React.FC<{ totalValue: number, performanceData: any[] }> = ({ totalValue, performanceData }) => (
+const OverviewTab: React.FC<{ totalValue: number, performanceData: PortfolioPerformance | null }> = ({ totalValue, performanceData }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
     <motion.div 
       className="bg-gray-700 p-4 rounded-lg"
@@ -113,11 +123,11 @@ const OverviewTab: React.FC<{ totalValue: number, performanceData: any[] }> = ({
       <h3 className="text-lg font-semibold mb-2 text-white">Performance</h3>
       <div className="h-40 sm:h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={performanceData}>
-            <XAxis dataKey="date" />
+          <LineChart data={performanceData ? [performanceData] : []}>
+            <XAxis dataKey="timeframe" />
             <YAxis />
             <Tooltip />
-            <Line type="monotone" dataKey="value" stroke="#8884d8" />
+            <Line type="monotone" dataKey="endValue" stroke="#8884d8" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -126,7 +136,7 @@ const OverviewTab: React.FC<{ totalValue: number, performanceData: any[] }> = ({
 );
 
 const PerformanceTab: React.FC<{ 
-  performanceData: any[], 
+  performanceData: PortfolioPerformance | null, 
   selectedTimeframe: string, 
   setSelectedTimeframe: (timeframe: string) => void,
   timeframes: string[]
@@ -145,11 +155,11 @@ const PerformanceTab: React.FC<{
     </div>
     <div className="h-64 sm:h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={performanceData}>
-          <XAxis dataKey="date" />
+        <LineChart data={performanceData ? [performanceData] : []}>
+          <XAxis dataKey="timeframe" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="#8884d8" />
+          <Line type="monotone" dataKey="endValue" stroke="#8884d8" />
         </LineChart>
       </ResponsiveContainer>
     </div>
