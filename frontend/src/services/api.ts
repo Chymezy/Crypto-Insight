@@ -2,7 +2,9 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { PortfolioData, PerformanceData, Transaction, User, Asset, Crypto, DetailedAsset, Portfolio } from '../types';
 import { getFromCache, setInCache } from '../utils/cacheUtils';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? '/api/v1'  // Use relative path in production
+  : 'http://localhost:5001/api/v1';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
