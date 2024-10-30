@@ -14,7 +14,7 @@ services:
       - key: JWT_REFRESH_SECRET
         sync: false
       - key: FRONTEND_URL
-        value: https://crypto-insight.onrender.com
+        value: https://crypto-insight-9wvr.onrender.com
       - key: GEMINI_API_KEY
         sync: false
       - key: CRYPTO_COMPARE_API_KEY
