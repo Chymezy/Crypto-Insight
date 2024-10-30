@@ -29,3 +29,8 @@ dist-ssr/
 !.v
 /docs
 .api-document
+
+node_modules/
+.env
+dist/
+.DS_Store

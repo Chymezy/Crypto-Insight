@@ -1,10 +1,14 @@
 {
-  "name": "stack",
+  "name": "crypto-insight",
   "version": "1.0.0",
   "type": "module",
-  "main": "backend/index.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "nodemon backend/index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "cd frontend && npm install && npm run build",
+    "install-all": "npm install && cd frontend && npm install",
+    "deploy": "npm run install-all && npm run build && npm start"
   },
   "keywords": [],
   "author": "",
@@ -29,7 +33,6 @@
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
     "redis": "^4.7.0",
-    "vite": "^5.4.9",
     "web3": "^4.14.0",
     "ws": "^8.18.0"
   },
