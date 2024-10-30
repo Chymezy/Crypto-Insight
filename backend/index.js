@@ -4,6 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from 'http';
 import { initializeWebSocket } from './websocket/websocket.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { connectDB } from "./db/connectDB.js";
 import { connectRedis } from "./config/redis.js";
@@ -26,7 +28,9 @@ const PORT = process.env.PORT || 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:5173', // Replace with your frontend URL
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL || 'https://your-app-name.onrender.com'
+    : 'http://localhost:5173',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -72,6 +76,16 @@ app.use('*', (req, res) => {
     console.log(`Unmatched route: ${req.method} ${req.originalUrl}`);
     res.status(404).json({ message: 'Route not found' });
 });
+
+// Add static file serving for production
+if (process.env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+}
 
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
