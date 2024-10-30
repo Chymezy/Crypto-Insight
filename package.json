@@ -7,7 +7,7 @@
     "start": "node backend/index.js",
     "dev": "nodemon backend/index.js",
     "build": "cd frontend && npm install && npm run build",
-    "install-all": "npm install && cd frontend && npm install --production=false",
+    "install-all": "npm install && cd frontend && npm install",
     "deploy": "npm run install-all && npm run build"
   },
   "dependencies": {
