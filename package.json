@@ -8,6 +8,6 @@
     "dev": "nodemon backend/index.js",
     "build": "cd frontend && npm run build",
     "install-all": "npm install && cd frontend && npm install --production=false",
-    "deploy": "npm run install-all && npm run build && npm start"
+    "deploy": "npm run install-all && npm run build"
   }
 }
