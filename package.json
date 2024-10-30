@@ -2,12 +2,12 @@
   "name": "crypto-insight",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "backend/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "build": "cd frontend && npm install && npm run build",
-    "install-all": "npm install && cd frontend && npm install",
+    "start": "node backend/index.js",
+    "dev": "nodemon backend/index.js",
+    "build": "cd frontend && npm run build",
+    "install-all": "npm install && cd frontend && npm install --production=false",
     "deploy": "npm run install-all && npm run build && npm start"
   },
   "keywords": [],
