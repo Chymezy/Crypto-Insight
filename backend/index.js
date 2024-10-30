@@ -40,7 +40,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Error handling middleware (add this before starting the server)
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({
@@ -48,11 +48,6 @@ app.use((err, req, res, next) => {
         message: 'An unexpected error occurred',
         error: process.env.NODE_ENV === 'development' ? err.message : {}
     });
-});
-
-// Routes
-app.get("/", (req, res) => {
-    res.send("Crypto-Insight API");
 });
 
 // API Routes first
@@ -66,21 +61,22 @@ app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/swap', swapRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 
+// Catch-all route for unmatched API routes - MOVE THIS HERE
+app.use('/api/*', (req, res) => {  // Changed to only catch /api/* routes
+    console.log(`Unmatched API route: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ message: 'Route not found' });
+});
+
 // Then static file serving for production
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
   
+  // This should catch ALL non-API routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
   });
 }
-
-// Finally, the catch-all route for unmatched API routes
-app.use('*', (req, res) => {
-    console.log(`Unmatched route: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ message: 'Route not found' });
-});
 
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
