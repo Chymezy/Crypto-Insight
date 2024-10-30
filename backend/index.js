@@ -55,29 +55,18 @@ app.get("/", (req, res) => {
     res.send("Crypto-Insight API");
 });
 
+// API Routes first
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/portfolios", portfolioRoutes);
 app.use('/api/v1/crypto', cryptoRoutes);
 app.use('/api/v1/news', newsRoutes);
 app.use('/api/v1/ai', aiRoutes);
-console.log('AI routes mounted');
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/swap', swapRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 
-// Add this route before your catch-all route
-app.get('/auth/me', (req, res) => {
-  res.status(401).json({ message: 'Not authenticated' });
-});
-
-// Your existing catch-all route
-app.use('*', (req, res) => {
-    console.log(`Unmatched route: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ message: 'Route not found' });
-});
-
-// Add static file serving for production
+// Then static file serving for production
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -86,6 +75,12 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
   });
 }
+
+// Finally, the catch-all route for unmatched API routes
+app.use('*', (req, res) => {
+    console.log(`Unmatched route: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ message: 'Route not found' });
+});
 
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
