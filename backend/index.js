@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 5000;
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL || 'https://your-app-name.onrender.com'
+    ? process.env.FRONTEND_URL || 'https://crypto-insight-9wvr.onrender.com'
     : 'http://localhost:5173',
   credentials: true,
   optionsSuccessStatus: 200
