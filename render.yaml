@@ -3,7 +3,7 @@ services:
     name: crypto-insight
     env: node
     buildCommand: npm run deploy
-    startCommand: npm start
+    startCommand: node backend/index.js
     envVars:
       - key: NODE_ENV
         value: production
