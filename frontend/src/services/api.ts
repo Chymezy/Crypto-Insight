@@ -235,10 +235,10 @@ export const fetchPriceHistory = async (assetId: string, timeframe: '24h' | '7d'
 export const fetchTopCryptos = async (): Promise<Crypto[]> => {
   try {
     const response = await api.get<Crypto[]>('/crypto/top?limit=100'); // Fetch 100 or more cryptocurrencies
-    console.log('Fetched crypto data:', response.data); // debugging log
+    console.log('Fetched crypto data:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching top cryptos:', error); // debugging log
+    console.error('Error fetching top cryptos:', error);
     throw error;
   }
 };

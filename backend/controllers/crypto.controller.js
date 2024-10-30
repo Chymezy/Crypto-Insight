@@ -2,9 +2,6 @@ import { fetchCryptoDataWithRetry, fetchHistoricalDataWithRetry, fetchAssetDetai
 import { getCoinId as getCoinIdFromService } from '../services/coinIdService.js';
 import { redisClient } from '../config/redis.js';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseHandler.js';
-import CoinGecko from 'coingecko-api';
-
-const CoinGeckoClient = new CoinGecko();
 
 export const getCryptoPrices = async (req, res) => {
     try {
@@ -166,19 +163,4 @@ export const getTopCryptos = async (req, res) => {
         console.error('Error in getTopCryptos:', error);
         res.status(500).json({ error: 'Error fetching top cryptocurrencies' });
     }
-};
-
-export const getCoinGeckoSymbols = async (req, res) => {
-  try {
-    const response = await CoinGeckoClient.coins.list();
-    const symbols = response.data.map(coin => ({
-      id: coin.id,
-      symbol: coin.symbol,
-      name: coin.name
-    }));
-    res.json({ success: true, symbols });
-  } catch (error) {
-    console.error('Error fetching CoinGecko symbols:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch CoinGecko symbols' });
-  }
 };

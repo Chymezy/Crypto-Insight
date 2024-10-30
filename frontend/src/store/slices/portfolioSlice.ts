@@ -1,76 +1,36 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import * as portfolioApi from '../../services/portfolioApi';
-import { Portfolio, PortfolioPerformance } from '../../types/portfolio.types';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { fetchPortfolioData, fetchPerformanceData } from '../../services/api';
+import { Portfolio, PerformanceData } from '../../types';
 
 interface PortfolioState {
   portfolios: Portfolio[];
   selectedPortfolio: Portfolio | null;
-  performanceData: PortfolioPerformance | null;
+  performanceData: PerformanceData[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: PortfolioState = {
-  portfolios: [], // This should be an empty array, not null or undefined
+  portfolios: [],
   selectedPortfolio: null,
-  performanceData: null,
+  performanceData: [],
   loading: false,
   error: null,
 };
 
 export const fetchPortfoliosThunk = createAsyncThunk(
   'portfolio/fetchPortfolios',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await portfolioApi.getPortfolios();
-    } catch (error) {
-      return rejectWithValue('Failed to fetch portfolios');
-    }
-  }
-);
-
-export const createPortfolio = createAsyncThunk(
-  'portfolio/createPortfolio',
-  async ({ name, description }: { name: string; description: string }, { rejectWithValue }) => {
-    try {
-      return await portfolioApi.createPortfolio(name, description);
-    } catch (error) {
-      return rejectWithValue('Failed to create portfolio');
-    }
-  }
-);
-
-export const updatePortfolio = createAsyncThunk(
-  'portfolio/updatePortfolio',
-  async ({ portfolioId, name, description }: { portfolioId: string; name: string; description: string }, { rejectWithValue }) => {
-    try {
-      return await portfolioApi.updatePortfolio(portfolioId, name, description);
-    } catch (error) {
-      return rejectWithValue('Failed to update portfolio');
-    }
-  }
-);
-
-export const deletePortfolio = createAsyncThunk(
-  'portfolio/deletePortfolio',
-  async (portfolioId: string, { rejectWithValue }) => {
-    try {
-      await portfolioApi.deletePortfolio(portfolioId);
-      return portfolioId;
-    } catch (error) {
-      return rejectWithValue('Failed to delete portfolio');
-    }
+  async () => {
+    const response = await fetchPortfolioData();
+    return response;
   }
 );
 
 export const fetchPerformanceThunk = createAsyncThunk(
   'portfolio/fetchPerformance',
-  async ({ portfolioId, timeframe }: { portfolioId: string; timeframe: string }, { rejectWithValue }) => {
-    try {
-      return await portfolioApi.fetchPortfolioPerformance(portfolioId, timeframe);
-    } catch (error) {
-      return rejectWithValue('Failed to fetch performance data');
-    }
+  async ({ portfolioId, timeframe }: { portfolioId: string; timeframe: string }) => {
+    const response = await fetchPerformanceData(portfolioId, timeframe);
+    return response;
   }
 );
 
@@ -78,58 +38,26 @@ const portfolioSlice = createSlice({
   name: 'portfolio',
   initialState,
   reducers: {
-    setSelectedPortfolio: (state, action: PayloadAction<Portfolio | null>) => {
+    setSelectedPortfolio: (state, action) => {
       state.selectedPortfolio = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    updatePortfolioAssets: (state, action: PayloadAction<Portfolio>) => {
-      const index = state.portfolios.findIndex(p => p.id === action.payload.id);
-      if (index !== -1) {
-        state.portfolios[index] = action.payload;
-      }
-      if (state.selectedPortfolio?.id === action.payload.id) {
-        state.selectedPortfolio = action.payload;
-      }
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchPortfoliosThunk.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(fetchPortfoliosThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.portfolios = action.payload;
+        state.portfolios = Array.isArray(action.payload) ? action.payload : [action.payload];
         state.selectedPortfolio = state.portfolios[0] || null;
       })
       .addCase(fetchPortfoliosThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(createPortfolio.fulfilled, (state, action) => {
-        state.portfolios.push(action.payload);
-      })
-      .addCase(updatePortfolio.fulfilled, (state, action) => {
-        const index = state.portfolios.findIndex(p => p.id === action.payload.id);
-        if (index !== -1) {
-          state.portfolios[index] = action.payload;
-        }
-        if (state.selectedPortfolio?.id === action.payload.id) {
-          state.selectedPortfolio = action.payload;
-        }
-      })
-      .addCase(deletePortfolio.fulfilled, (state, action) => {
-        state.portfolios = state.portfolios.filter(p => p.id !== action.payload);
-        if (state.selectedPortfolio?.id === action.payload) {
-          state.selectedPortfolio = state.portfolios[0] || null;
-        }
+        state.error = action.error.message || 'Failed to fetch portfolios';
       })
       .addCase(fetchPerformanceThunk.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(fetchPerformanceThunk.fulfilled, (state, action) => {
         state.loading = false;
@@ -137,11 +65,11 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPerformanceThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.error.message || 'Failed to fetch performance data';
       });
   },
 });
 
-export const { setSelectedPortfolio, clearError, updatePortfolioAssets } = portfolioSlice.actions;
+export const { setSelectedPortfolio } = portfolioSlice.actions;
 
 export default portfolioSlice.reducer;
