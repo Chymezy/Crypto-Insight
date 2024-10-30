@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { fetchPortfolios, fetchPerformance, setSelectedPortfolio, clearError } from '../store/slices/portfolioSlice';
+import { 
+  fetchPortfoliosThunk,
+  fetchPerformanceThunk,
+  setSelectedPortfolio,
+  clearError
+} from '../store/slices/portfolioSlice';
 import { LineChart, Line, PieChart, Pie, ResponsiveContainer, Tooltip, Cell, XAxis, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaChartLine, FaChartPie, FaList, FaSpinner } from 'react-icons/fa';
@@ -15,12 +20,12 @@ const PortfolioOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    dispatch(fetchPortfolios());
+    dispatch(fetchPortfoliosThunk());
   }, [dispatch]);
 
   useEffect(() => {
     if (selectedPortfolio) {
-      dispatch(fetchPerformance({ portfolioId: selectedPortfolio.id, timeframe: selectedTimeframe }));
+      dispatch(fetchPerformanceThunk({ portfolioId: selectedPortfolio.id, timeframe: selectedTimeframe }));
     }
   }, [dispatch, selectedPortfolio, selectedTimeframe]);
 

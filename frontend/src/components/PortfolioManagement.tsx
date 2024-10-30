@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { fetchPortfolios, createPortfolio, updatePortfolio, deletePortfolio } from '../store/slices/portfolioSlice';
+import { fetchPortfoliosThunk, createPortfolio, updatePortfolio, deletePortfolio } from '../store/slices/portfolioSlice';
 import { Portfolio, Asset } from '../types/portfolio.types';
 import { addAssetToPortfolio, removeAssetFromPortfolio, updateAssetInPortfolio, getCoinId, fetchCoinGeckoSymbols } from '../services/portfolioApi';
 import { toast } from 'react-toastify';
@@ -28,7 +28,7 @@ const PortfolioManagement: React.FC = () => {
   const [isLoadingCoins, setIsLoadingCoins] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchPortfolios());
+    dispatch(fetchPortfoliosThunk());
     fetchCoins();
   }, [dispatch]);
 

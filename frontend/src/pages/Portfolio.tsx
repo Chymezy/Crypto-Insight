@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import PortfolioOverview from '../components/PortfolioOverview';
 import PortfolioManagement from '../components/PortfolioManagement';
+import { 
+  fetchPortfoliosThunk,
+  setSelectedPortfolio 
+} from '../store/slices/portfolioSlice';
 
 const Portfolio: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'management'>('overview');

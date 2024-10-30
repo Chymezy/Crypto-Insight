@@ -18,11 +18,11 @@ const initialState: PortfolioState = {
   error: null,
 };
 
-export const fetchPortfolios = createAsyncThunk(
+export const fetchPortfoliosThunk = createAsyncThunk(
   'portfolio/fetchPortfolios',
   async (_, { rejectWithValue }) => {
     try {
-      return await portfolioApi.fetchPortfolios();
+      return await portfolioApi.getPortfolios();
     } catch (error) {
       return rejectWithValue('Failed to fetch portfolios');
     }
@@ -63,7 +63,7 @@ export const deletePortfolio = createAsyncThunk(
   }
 );
 
-export const fetchPerformance = createAsyncThunk(
+export const fetchPerformanceThunk = createAsyncThunk(
   'portfolio/fetchPerformance',
   async ({ portfolioId, timeframe }: { portfolioId: string; timeframe: string }, { rejectWithValue }) => {
     try {
@@ -84,19 +84,28 @@ const portfolioSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    updatePortfolioAssets: (state, action: PayloadAction<Portfolio>) => {
+      const index = state.portfolios.findIndex(p => p.id === action.payload.id);
+      if (index !== -1) {
+        state.portfolios[index] = action.payload;
+      }
+      if (state.selectedPortfolio?.id === action.payload.id) {
+        state.selectedPortfolio = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPortfolios.pending, (state) => {
+      .addCase(fetchPortfoliosThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPortfolios.fulfilled, (state, action) => {
+      .addCase(fetchPortfoliosThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.portfolios = action.payload;
         state.selectedPortfolio = state.portfolios[0] || null;
       })
-      .addCase(fetchPortfolios.rejected, (state, action) => {
+      .addCase(fetchPortfoliosThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -118,21 +127,21 @@ const portfolioSlice = createSlice({
           state.selectedPortfolio = state.portfolios[0] || null;
         }
       })
-      .addCase(fetchPerformance.pending, (state) => {
+      .addCase(fetchPerformanceThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPerformance.fulfilled, (state, action) => {
+      .addCase(fetchPerformanceThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.performanceData = action.payload;
       })
-      .addCase(fetchPerformance.rejected, (state, action) => {
+      .addCase(fetchPerformanceThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
   },
 });
 
-export const { setSelectedPortfolio, clearError } = portfolioSlice.actions;
+export const { setSelectedPortfolio, clearError, updatePortfolioAssets } = portfolioSlice.actions;
 
 export default portfolioSlice.reducer;

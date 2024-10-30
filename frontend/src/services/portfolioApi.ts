@@ -1,12 +1,18 @@
 import api from './api';  // Import the main api instance
 import { Portfolio, PortfolioPerformance, Asset } from '../types/portfolio.types';
+import { store } from '../store';
+import { 
+  updatePortfolioAssets, 
+  fetchPortfoliosThunk, 
+  fetchPerformanceThunk 
+} from '../store/slices/portfolioSlice';
 
-export const fetchPortfolios = async (): Promise<Portfolio[]> => {
+export const getPortfolios = async (): Promise<Portfolio[]> => {
   try {
     const response = await api.get('/portfolios');
     return response.data.data;
   } catch (error) {
-    console.error('Error in fetchPortfolios:', error);
+    console.error('Error in getPortfolios:', error);
     throw error;
   }
 };
@@ -24,7 +30,7 @@ export const createPortfolio = async (name: string, description: string): Promis
 export const fetchSinglePortfolio = async (portfolioId: string): Promise<Portfolio> => {
   try {
     const response = await api.get(`/portfolios/${portfolioId}`);
-    return response.data.portfolio;
+    return response.data.data?.portfolio || response.data.portfolio;
   } catch (error) {
     console.error('Error in fetchSinglePortfolio:', error);
     throw error;
@@ -63,7 +69,28 @@ export const deletePortfolio = async (portfolioId: string): Promise<void> => {
 export const addAssetToPortfolio = async (portfolioId: string, coinId: string, amount: number): Promise<Portfolio> => {
   try {
     const response = await api.post(`/portfolios/${portfolioId}/assets`, { coinId, amount });
-    return response.data.portfolio;
+    console.log('Add asset response:', response.data);
+    
+    const portfolioResponse = await api.get(`/portfolios/${portfolioId}`);
+    console.log('Updated portfolio response:', portfolioResponse.data);
+    
+    const updatedPortfolio = portfolioResponse.data.data?.portfolio || portfolioResponse.data.portfolio;
+    
+    if (updatedPortfolio) {
+      store.dispatch(updatePortfolioAssets(updatedPortfolio));
+      
+      store.dispatch(fetchPortfoliosThunk());
+      
+      store.dispatch(fetchPerformanceThunk({ 
+        portfolioId: updatedPortfolio.id, 
+        timeframe: '7d'
+      }));
+
+      return updatedPortfolio;
+    } else {
+      console.error('Invalid portfolio data structure:', portfolioResponse.data);
+      throw new Error('Failed to fetch updated portfolio data');
+    }
   } catch (error) {
     console.error('Error in addAssetToPortfolio:', error);
     throw error;
@@ -72,8 +99,24 @@ export const addAssetToPortfolio = async (portfolioId: string, coinId: string, a
 
 export const updateAssetInPortfolio = async (portfolioId: string, assetId: string, amount: number): Promise<Portfolio> => {
   try {
-    const response = await api.put(`/portfolios/${portfolioId}/assets/${assetId}`, { amount });
-    return response.data.portfolio;
+    await api.put(`/portfolios/${portfolioId}/assets/${assetId}`, { amount });
+    
+    const updatedPortfolio = await fetchSinglePortfolio(portfolioId);
+    
+    if (updatedPortfolio) {
+      store.dispatch(updatePortfolioAssets(updatedPortfolio));
+      
+      store.dispatch(fetchPortfoliosThunk());
+      
+      store.dispatch(fetchPerformanceThunk({ 
+        portfolioId: updatedPortfolio.id, 
+        timeframe: '7d'
+      }));
+
+      return updatedPortfolio;
+    } else {
+      throw new Error('Failed to fetch updated portfolio data');
+    }
   } catch (error) {
     console.error('Error in updateAssetInPortfolio:', error);
     throw error;
@@ -83,6 +126,19 @@ export const updateAssetInPortfolio = async (portfolioId: string, assetId: strin
 export const removeAssetFromPortfolio = async (portfolioId: string, assetId: string): Promise<void> => {
   try {
     await api.delete(`/portfolios/${portfolioId}/assets/${assetId}`);
+    
+    const updatedPortfolio = await fetchSinglePortfolio(portfolioId);
+    
+    if (updatedPortfolio) {
+      store.dispatch(updatePortfolioAssets(updatedPortfolio));
+      
+      store.dispatch(fetchPortfoliosThunk());
+      
+      store.dispatch(fetchPerformanceThunk({ 
+        portfolioId: updatedPortfolio.id, 
+        timeframe: '7d'
+      }));
+    }
   } catch (error) {
     console.error('Error in removeAssetFromPortfolio:', error);
     throw error;
