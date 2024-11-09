@@ -1,0 +1,177 @@
+PIPELINE MONITORING AND ALERTING GUIDE
+====================================
+
+1. OVERVIEW
+-----------
+This guide covers monitoring setup for the data pipeline, including health checks,
+data quality monitoring, and alert configurations.
+
+2. COMPONENTS
+------------
+- monitoring/pipeline_monitor.py: Main monitoring script
+- monitoring/alert_config.py: Alert configuration
+- Azure Monitor: Metrics and logging
+- Azure Log Analytics: Log aggregation
+
+3. MONITORING SCOPE
+------------------
+Areas Monitored:
+a) Pipeline Health
+   - Pipeline execution status
+   - Component availability
+   - Error rates
+
+b) Data Quality
+   - Null values
+   - Duplicate records
+   - Schema compliance
+   - Data freshness
+
+c) Performance
+   - Ingestion latency
+   - Processing time
+   - Resource utilization
+
+4. ALERT CONFIGURATIONS
+----------------------
+Critical Alerts (Severity 1):
+- Pipeline failures
+- Data loss
+- Service unavailability
+- Security breaches
+
+Error Alerts (Severity 2):
+- Data quality issues
+- High latency
+- Resource constraints
+- Schema violations
+
+Warning Alerts (Severity 3):
+- Performance degradation
+- Capacity warnings
+- Minor data issues
+
+5. MONITORING METRICS
+--------------------
+Pipeline Metrics:
+- Success/failure rates
+- Processing duration
+- Record counts
+- Error counts
+
+Data Quality Metrics:
+- Null value counts
+- Duplicate records
+- Schema violations
+- Data validation failures
+
+Performance Metrics:
+- CPU utilization
+- Memory usage
+- I/O operations
+- Network throughput
+
+6. DASHBOARDS
+------------
+Operations Dashboard:
+- Pipeline status
+- Error rates
+- Component health
+- Resource utilization
+
+Data Quality Dashboard:
+- Quality metrics
+- Validation results
+- Issue trends
+- Resolution status
+
+Performance Dashboard:
+- Latency metrics
+- Resource usage
+- Throughput
+- Bottlenecks
+
+7. RESPONSE PROCEDURES
+---------------------
+For Critical Alerts:
+1. Immediate team notification
+2. Incident creation
+3. Status page update
+4. Management escalation
+
+For Error Alerts:
+1. Team notification
+2. Issue investigation
+3. Impact assessment
+4. Resolution planning
+
+For Warning Alerts:
+1. Log incident
+2. Schedule review
+3. Plan mitigation
+4. Monitor trend
+
+8. MAINTENANCE
+-------------
+Daily Tasks:
+- Review alert logs
+- Check dashboard metrics
+- Verify monitoring health
+- Update incident status
+
+Weekly Tasks:
+- Review alert thresholds
+- Analyze trend data
+- Update documentation
+- Team status review
+
+Monthly Tasks:
+- Performance analysis
+- Capacity planning
+- Alert rule review
+- Documentation update
+
+9. TROUBLESHOOTING
+-----------------
+Monitoring Issues:
+- Check connectivity
+- Verify permissions
+- Validate metrics
+- Review logs
+
+Alert Issues:
+- Check alert rules
+- Verify thresholds
+- Test notifications
+- Check action groups
+
+10. SECURITY
+-----------
+Access Control:
+- Role-based access
+- Audit logging
+- Secure storage
+- Regular review
+
+Data Protection:
+- Encryption
+- Access logging
+- Retention policy
+- Compliance check
+
+11. SUPPORT
+----------
+Contacts:
+- Primary: monitoring@company.com
+- Emergency: oncall@company.com
+
+Resources:
+- Azure Monitor docs
+- Internal runbooks
+- Team wiki
+- Incident templates
+
+Would you like me to continue with guides for:
+1. Business Metrics Transformation
+2. Analytics Views
+3. Deployment Procedures 

@@ -1,0 +1,122 @@
+DATA INGESTION PIPELINE GUIDE
+============================
+
+1. OVERVIEW
+-----------
+The data ingestion pipeline captures changes from PostgreSQL and MongoDB databases 
+and stores them in Azure Data Lake for analytics processing.
+
+2. COMPONENTS
+------------
+- scripts/data_ingestion.py: Main ingestion script
+- Azure Event Hub: Message broker for change events
+- Azure Data Lake: Storage for captured data
+
+3. PREREQUISITES
+---------------
+- Azure Event Hub namespace configured
+- Azure Data Lake Storage Gen2 account
+- Access to source databases
+- Required Python packages installed:
+  * azure-eventhub
+  * azure-storage-filedatalake
+  * asyncio
+  * json
+
+4. CONFIGURATION
+---------------
+Environment Variables Required:
+EVENTHUB_CONNECTION_STRING=<your-eventhub-connection>
+STORAGE_CONNECTION_STRING=<your-storage-connection>
+
+5. DATA FLOW
+-----------
+PostgreSQL Changes:
+source → CDC → Event Hub → Data Lake (bronze/postgresql/)
+
+MongoDB Changes:
+source → Change Streams → Event Hub → Data Lake (bronze/mongodb/)
+
+6. FOLDER STRUCTURE
+------------------
+/data
+  /bronze
+    /postgresql
+      /YYYY/MM/DD/
+        data_{timestamp}.json
+    /mongodb
+      /YYYY/MM/DD/
+        data_{timestamp}.json
+
+7. MONITORING
+------------
+Key Metrics to Watch:
+- Event Hub message throughput
+- Data Lake write latency
+- Processing delays
+- Error rates
+
+8. ERROR HANDLING
+---------------
+Common Issues:
+1. Event Hub Connection:
+   - Check connection string
+   - Verify network access
+   - Monitor throughput units
+
+2. Data Lake Storage:
+   - Check permissions
+   - Monitor storage capacity
+   - Verify network access
+
+9. MAINTENANCE
+-------------
+Daily Tasks:
+- Monitor error logs
+- Check data completeness
+- Verify latency metrics
+
+Weekly Tasks:
+- Review performance metrics
+- Clean up old checkpoints
+- Optimize storage partitions
+
+10. TROUBLESHOOTING
+-----------------
+Event Hub Issues:
+- Check consumer group status
+- Verify partition distribution
+- Monitor throttling events
+
+Data Lake Issues:
+- Check storage metrics
+- Verify folder permissions
+- Monitor file counts
+
+11. SECURITY
+-----------
+Access Control:
+- Use managed identities
+- Implement least privilege
+- Regular access review
+
+Data Protection:
+- Enable encryption
+- Secure connection strings
+- Monitor access logs
+
+12. SUPPORT
+----------
+Contact:
+- Primary: data-pipeline@company.com
+- Emergency: oncall@company.com
+
+Documentation:
+- Azure Event Hub Docs
+- Data Lake Storage Docs
+- Internal Wiki
+
+Would you like me to continue with guides for:
+1. Pipeline Monitoring
+2. Business Metrics
+3. Analytics Views 

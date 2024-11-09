@@ -1,0 +1,326 @@
+# WASTEDUMP WEBSITE - DATABASE DESIGN DOCUMENTATION
+
+## QUICK REFERENCE SUMMARY
+-------------------------------------------------------------------------------
+| Domain            | PostgreSQL Tables    | MongoDB Collections | Redis Caches |
+|-------------------|---------------------|-------------------|---------------|
+| User Management   | - Users             | - User_Activities | - User Sessions|
+|                   | - User_Profiles     | - Logs           |               |
+|                   | - Households        |                   |               |
+|                   | - Institutions      |                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Merchant          | - Merchants         |                   | - Product Cache|
+|                   | - Products          |                   | - Category Cache|
+|                   | - Waste_Categories  |                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Stokvel           | - Stokvels         |                   | - Active Members|
+|                   | - Stokvel_Members   |                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Subscription      | - Subscription_Plans|                   |               |
+|                   | - User_Subscriptions|                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Order Management  | - Orders           |                   | - Popular Items|
+|                   | - Order_Items      |                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Monitoring        | - Monitors         | - Waste_Reports   | - Monitor Lists|
+|                   | - Mobile_Tellings  |                   | - Report Cache |
+|                   | - Sponsors         |                   |               |
+|-------------------|---------------------|-------------------|---------------|
+| Communication     |                     | - Chat_Messages   |               |
+|                   |                     | - Notifications   |               |
+|                   |                     | - Community_Feed  |               |
+|-------------------|---------------------|-------------------|---------------|
+| Analytics         |                     | - Analytics      | - Rate Limits |
+-------------------------------------------------------------------------------
+
+## 1. SYSTEM ARCHITECTURE
+-------------------------------------------------------------------------------
+Primary Database:   PostgreSQL (Transactional data)
+Secondary Database: MongoDB (Non-relational data)
+Caching Layer:      Redis
+-------------------------------------------------------------------------------
+
+## 2. POSTGRESQL DATABASE SCHEMA
+-------------------------------------------------------------------------------
+
+### USER MANAGEMENT DOMAIN
+
+[Users]
+- id                UUID (PK)
+- email             VARCHAR(255) UNIQUE
+- password_hash     VARCHAR(255)
+- user_type         VARCHAR(50)  // individual, merchant, sponsor, monitor
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[User_Profiles]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- first_name        VARCHAR(100)
+- last_name         VARCHAR(100)
+- phone_number      VARCHAR(20)
+- address           TEXT
+- profile_picture   VARCHAR(255)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Households]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- household_name    VARCHAR(255)
+- address           TEXT
+- member_count      INTEGER
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Institutions]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- institution_name  VARCHAR(255)
+- institution_type  VARCHAR(100)
+- registration_no   VARCHAR(100)
+- verification_status VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+### MERCHANT DOMAIN
+
+[Merchants]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- business_name     VARCHAR(255)
+- business_type     VARCHAR(100)
+- registration_no   VARCHAR(100)
+- verification_status VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Waste_Categories]
+- id                UUID (PK)
+- name              VARCHAR(100)
+- description       TEXT
+- created_at        TIMESTAMP
+
+[Products]
+- id                UUID (PK)
+- merchant_id       UUID (FK -> Merchants)
+- category_id       UUID (FK -> Waste_Categories)
+- name              VARCHAR(255)
+- description       TEXT
+- price             DECIMAL(10,2)
+- quantity          INTEGER
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+### STOKVEL DOMAIN
+
+[Stokvels]
+- id                UUID (PK)
+- name              VARCHAR(255)
+- description       TEXT
+- admin_user_id     UUID (FK -> Users)
+- status            VARCHAR(50)
+- member_limit      INTEGER
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Stokvel_Members]
+- id                UUID (PK)
+- stokvel_id        UUID (FK -> Stokvels)
+- user_id           UUID (FK -> Users)
+- role              VARCHAR(50)
+- join_date         TIMESTAMP
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+### SUBSCRIPTION DOMAIN
+
+[Subscription_Plans]
+- id                UUID (PK)
+- name              VARCHAR(100)
+- description       TEXT
+- price             DECIMAL(10,2)
+- duration_months   INTEGER
+- features          JSONB
+- created_at        TIMESTAMP
+
+[User_Subscriptions]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- plan_id           UUID (FK -> Subscription_Plans)
+- start_date        TIMESTAMP
+- end_date          TIMESTAMP
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+### ORDER MANAGEMENT DOMAIN
+
+[Orders]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- merchant_id       UUID (FK -> Merchants)
+- total_amount      DECIMAL(10,2)
+- status            VARCHAR(50)
+- payment_status    VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Order_Items]
+- id                UUID (PK)
+- order_id          UUID (FK -> Orders)
+- product_id        UUID (FK -> Products)
+- quantity          INTEGER
+- price_per_unit    DECIMAL(10,2)
+- total_price       DECIMAL(10,2)
+- created_at        TIMESTAMP
+
+### MONITORING DOMAIN
+
+[Monitors]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- jurisdiction_area TEXT
+- certification_level VARCHAR(50)
+- status            VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Mobile_Tellings]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- location_coords   POINT
+- address           TEXT
+- waste_type_id     UUID (FK -> Waste_Categories)
+- status            VARCHAR(50)
+- scheduled_date    TIMESTAMP
+- completion_date   TIMESTAMP
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+[Sponsors]
+- id                UUID (PK)
+- user_id           UUID (FK -> Users)
+- organization_name VARCHAR(255)
+- sponsorship_type  VARCHAR(100)
+- verification_status VARCHAR(50)
+- created_at        TIMESTAMP
+- updated_at        TIMESTAMP
+
+## 3. MONGODB COLLECTIONS
+-------------------------------------------------------------------------------
+
+### ACTIVITY TRACKING
+
+[Logs]
+{
+    _id: ObjectId,
+    user_id: UUID,
+    action: String,
+    details: Object,
+    ip_address: String,
+    user_agent: String,
+    timestamp: DateTime
+}
+
+[User_Activities]
+{
+    _id: ObjectId,
+    user_id: UUID,
+    activity_type: String,
+    metadata: Object,
+    created_at: DateTime
+}
+
+### COMMUNICATION
+
+[Chat_Messages]
+{
+    _id: ObjectId,
+    conversation_id: UUID,
+    sender_id: UUID,
+    receiver_id: UUID,
+    message: String,
+    attachments: Array,
+    read_status: Boolean,
+    created_at: DateTime
+}
+
+[Notifications]
+{
+    _id: ObjectId,
+    user_id: UUID,
+    type: String,
+    title: String,
+    message: String,
+    read: Boolean,
+    data: Object,
+    created_at: DateTime
+}
+
+[Waste_Reports]
+{
+    _id: ObjectId,
+    monitor_id: UUID,
+    location: {
+        coordinates: [longitude, latitude],
+        address: String
+    },
+    report_type: String,
+    images: Array,
+    status: String,
+    created_at: DateTime,
+    updated_at: DateTime
+}
+
+[Community_Feed]
+{
+    _id: ObjectId,
+    author_id: UUID,
+    post_type: String,
+    content: String,
+    media: Array,
+    likes: Number,
+    comments: Array,
+    created_at: DateTime
+}
+
+### ANALYTICS
+
+[Analytics]
+{
+    _id: ObjectId,
+    event_type: String,
+    user_id: UUID,
+    page_url: String,
+    metadata: Object,
+    timestamp: DateTime
+}
+
+## 4. REDIS CACHE PATTERNS
+-------------------------------------------------------------------------------
+
+### Session Management
+- user:session:{session_id} -> {user_data}                TTL: 24h
+- product:{product_id} -> {product_data}                  TTL: 1h
+- category:{category_id} -> {category_data}               TTL: 6h
+
+### Rate Limiting
+- rate:limit:{ip} -> count                                TTL: 1m
+
+### Popular Items
+- sorted_set:popular_products -> {product_id, score}      TTL: 24h
+
+### Location Services
+- location:monitors:{area_code} -> [monitor_list]         TTL: 15m
+- location:waste_reports:{area_code} -> [reports]         TTL: 30m
+
+### Community Features
+- feed:trending -> {post_rankings}                        TTL: 1h
+- stokvel:active:{stokvel_id} -> {member_count}          TTL: 5m
+
+-------------------------------------------------------------------------------

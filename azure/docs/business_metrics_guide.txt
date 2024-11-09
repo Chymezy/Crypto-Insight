@@ -1,0 +1,198 @@
+BUSINESS METRICS TRANSFORMATION GUIDE
+===================================
+
+1. OVERVIEW
+-----------
+This guide covers the transformation of raw data into business metrics using
+Databricks, focusing on the silver to gold layer transformations.
+
+2. METRIC DOMAINS
+---------------
+A. Revenue Metrics
+   - Total revenue
+   - Average order value
+   - Revenue by merchant
+   - Revenue by category
+
+B. User Metrics
+   - User growth
+   - User activity
+   - Subscription conversion
+   - User retention
+
+C. Waste Management Metrics
+   - Collection efficiency
+   - Recycling rates
+   - Environmental impact
+   - Geographic distribution
+
+3. DATA SOURCES
+-------------
+Silver Layer Tables:
+- users_enriched
+- orders_enriched
+- merchant_performance
+- user_activity_summary
+- waste_collection_metrics
+
+4. TRANSFORMATION LOGIC
+---------------------
+A. Revenue Calculations:
+   - Daily/Monthly/Annual revenue
+   - Growth rates
+   - Market share analysis
+   - Merchant rankings
+
+B. User Analytics:
+   - Cohort analysis
+   - Engagement scores
+   - Churn prediction
+   - Lifetime value
+
+C. Operational Metrics:
+   - Collection efficiency
+   - Response times
+   - Service coverage
+   - Quality ratings
+
+5. SCHEDULING
+------------
+Daily Transformations:
+- Basic metrics refresh
+- Daily aggregations
+- KPI updates
+
+Weekly Transformations:
+- Trend analysis
+- Performance scoring
+- Market analysis
+
+Monthly Transformations:
+- Complex analytics
+- Historical comparisons
+- Predictive metrics
+
+6. QUALITY CHECKS
+---------------
+Pre-transformation:
+- Data completeness
+- Value ranges
+- Relationship validity
+- Schema compliance
+
+Post-transformation:
+- Metric validation
+- Trend analysis
+- Anomaly detection
+- Cross-metric validation
+
+7. OUTPUT SPECIFICATIONS
+----------------------
+Gold Layer Tables:
+- revenue_metrics
+- user_growth
+- merchant_rankings
+- waste_management_kpis
+- operational_metrics
+
+Format Requirements:
+- Delta Lake format
+- Proper partitioning
+- Optimization for queries
+- Metadata management
+
+8. DEPENDENCIES
+-------------
+System Dependencies:
+- Databricks Runtime
+- Delta Lake
+- Required libraries
+- Compute resources
+
+Data Dependencies:
+- Silver layer freshness
+- Data quality status
+- System availability
+- Resource allocation
+
+9. ERROR HANDLING
+---------------
+Common Issues:
+- Data quality failures
+- Processing timeouts
+- Resource constraints
+- Logic errors
+
+Resolution Steps:
+- Automated retries
+- Error logging
+- Alert generation
+- Manual intervention
+
+10. OPTIMIZATION
+--------------
+Performance:
+- Query optimization
+- Resource allocation
+- Caching strategy
+- Partition management
+
+Cost:
+- Compute optimization
+- Storage management
+- Resource scheduling
+- Workload distribution
+
+11. MONITORING
+------------
+Metrics to Track:
+- Processing time
+- Resource usage
+- Success rates
+- Data quality scores
+
+Alerts:
+- Processing failures
+- Quality issues
+- Performance degradation
+- Resource constraints
+
+12. MAINTENANCE
+-------------
+Regular Tasks:
+- Optimize tables
+- Update statistics
+- Clean up old data
+- Validate metrics
+
+Schedule:
+- Daily health checks
+- Weekly optimization
+- Monthly review
+- Quarterly cleanup
+
+13. SECURITY
+----------
+Access Control:
+- Role assignments
+- Data encryption
+- Audit logging
+- Compliance checks
+
+Data Protection:
+- Backup strategy
+- Version control
+- Recovery procedures
+- Security monitoring
+
+14. SUPPORT
+---------
+Contact:
+- Primary: analytics@company.com
+- Emergency: oncall@company.com
+
+Documentation:
+- Metric definitions
+- Business rules
+- Technical specs
+- Troubleshooting guides 
